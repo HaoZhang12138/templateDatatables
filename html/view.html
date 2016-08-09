@@ -3,18 +3,49 @@
 <head>
     <meta charset="utf-8">
     <title>View</title>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.2.1/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.0/css/select.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="./Editor-1.5.6/css/editor.dataTables.min.css" />
+
+    <!--<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/plug-ins/1.10.12/api/fnReloadAjax.js"></script>-->
+    <script src = "//code.jquery.com/jquery-1.12.3.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.2.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.2.0/js/dataTables.select.min.js"></script>
+    <script type="text/javascript" language="javascript" src="./Editor-1.5.6/js/dataTables.editor.min.js"></script>
+
+    <script src = "./tables.js"></script>
 </head>
 <body>
-<h4 > 用戶信息 </h4>
-<ol>
-    {{range $key, $value := .info}}
-    <p>{{$key|html}}: {{$value|html}}</p>
-    {{end}}
-</ol>
 
-<form action = "/main">
-    <input type=submit value="返回" />
-    </form>
+<table id="example" class="display" width="100%" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>User</th>
+        <th>Pass</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Tel</th>
+        <th>Sex</th>
+        <th>File</th>
+    </tr>
+    </thead>
+    <tfoot>
+    <tr>
+        <th>Id</th>
+        <th>User</th>
+        <th>Pass</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Tel</th>
+        <th>Sex</th>
+        <th>File</th>
+    </tr>
+    </tfoot>
+</table>
 </body>
 </html>
 

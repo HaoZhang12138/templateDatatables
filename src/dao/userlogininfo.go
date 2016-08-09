@@ -3,7 +3,6 @@ package dao
 import (
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2"
-
 )
 
 type UserLoginInfo struct {
@@ -13,6 +12,8 @@ type UserLoginInfo struct {
 	Sex string  `json:"sex"`
 	Age string  `json:"age"`
 	Tel string  `json:"tel"`
+	Id string `json:"id" bson:"_id"`
+	FileId string `json:"file"`
 }
 
 /*func (this *UserLoginInfo) Insert()(err error) {
@@ -71,17 +72,6 @@ func Listkey() (info interface{}, err error) {
 
 const collections = "userinfo"
 
-func (this *UserLoginInfo) Insert()(err error) {
-
-	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Insert(this)
-	}
-
-	_, err = doCllection(collections, f)
-
-	return
-}
-
 func (this *UserLoginInfo) Exist()(exist bool,err error) {
 
 
@@ -120,28 +110,6 @@ func (this *UserLoginInfo) Check()(ok bool, err error){
 	return
 }
 
-func (this *UserLoginInfo) GetUserinfo()(info map[string]string, err error){
-
-	result := UserLoginInfo{}
-	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{"user": this.User}).One(&result)
-	}
-
-	_, err = doCllection(collections, f)
-
-	if err != nil {
-		return
-	}
-
-	info = make(map[string]string)
-	info["name"] = result.Name
-	info["sex"] = result.Sex
-	info["age"] = result.Age
-	info["tel"] = result.Tel
-
-	return
-}
-
 func Listkey() (info []string, err error) {
 
 	result := []UserLoginInfo{}
@@ -163,4 +131,12 @@ func Listkey() (info []string, err error) {
 	}
 	return
 }
+
+
+
+
+
+
+
+
 

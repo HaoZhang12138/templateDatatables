@@ -5,8 +5,24 @@
     <title>Login</title>
 </head>
 <body>
+<script>
+    function checkIsEmpty() {
+         var user = document.forms["login"]["user"].value;
+         if (user == null || user == ""){
+             alert("账号不能为空");
+             return false
+         }
+
+        var pass = document.forms["login"]["pass"].value;
+        if (pass == null || pass == ""){
+            alert("密码不能为空");
+            return false
+        }
+        
+    }
+</script>
 <h3> 登陆或注冊 </h3>
-<form method="POST" action="/login">
+<form name="login" method="POST" action="/login" onsubmit="return checkIsEmpty()">
     账号： <input name = "user" type = "text"><br/>
     密码： <input name = "pass" type = "password"><br/>
     <input type="submit" value="登陆">
