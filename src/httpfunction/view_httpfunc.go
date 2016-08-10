@@ -30,30 +30,7 @@ type uploadfile_tmp struct {
 
 const UPLOAD_DIR = "/home/zh/GoPro/firstRedis/html/uploads"
 const PreWebPath = "/uploads/"
-
-func loadUserInfoForDatatables(r *http.Request,id []string)(ret []dao.EditDataTables){
-
-	ret = make([]dao.EditDataTables, 0)
-	for i := range id {
-		var info *dao.UserLoginInfo
-		info = new(dao.UserLoginInfo)
-		info.User = r.FormValue("data[" + id[i] + "][user]")
-		info.Pass = r.FormValue("data[" + id[i] + "][pass]")
-		info.Name = r.FormValue("data[" + id[i] + "][name]")
-		info.Age  = r.FormValue("data[" + id[i] + "][age]")
-		info.Tel  = r.FormValue("data[" + id[i] + "][tel]")
-		info.Sex  = r.FormValue("data[" + id[i] + "][sex]")
-		info.Id   = r.FormValue("data[" + id[i] + "][_id]")
-		info.FileId = r.FormValue("data[" + id[i] + "][fileid]")
-
-		if info.Id == "" {
-			info.Id = strconv.Itoa(dao.GetNextId())
-		}
-		ret = append(ret, info)
-	}
-	return
-}
-
+const NowTable = "userinfo"
 
 func GetDataTableId(r *http.Request)(id []string, err error ){
 
@@ -118,11 +95,17 @@ func Getpostfile(w http.ResponseWriter, r *http.Request) (uploadid string, err e
 	return
 }
 
+func Createdatatablesline(w http.ResponseWriter,r *http.Request, id []string, tableName string) (res []dao.EditDataTables, err error) {
 
-func Createdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res []dao.EditDataTables, err error) {
-	res = loadUserInfoForDatatables(r, id)
-	for i := range res {
-		err = res[i].Insert()
+	res = make([]dao.EditDataTables, len(id))
+	for i := range id {
+		res[i], err = dao.GetDataStruct(tableName)
+		if err != nil {
+			log.Println(err.Error(), " failed to GetDataStruct in func Createdatatablesline")
+			return
+		}
+		res[i].LoadDataFromPostForm(r, id[i])
+		err = dao.Insert(tableName, res[i])
 		if err != nil {
 			log.Println("failed to create datatables row")
 			return
@@ -132,20 +115,24 @@ func Createdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (r
 	return
 }
 
-func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res []dao.EditDataTables,err error) {
+func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string, tableName string) (res []dao.EditDataTables,err error) {
 
-	res = loadUserInfoForDatatables(r, id)
-
-	for i := range res {
+	res = make([]dao.EditDataTables, len(id))
+	for i := range id {
+		res[i], err = dao.GetDataStruct(tableName)
+		if err != nil {
+			log.Println(err.Error(), " failed to GetDataStruct in func Createdatatablesline")
+			return
+		}
+		res[i].LoadDataFromPostForm(r, id[i])
 
 		var filetmp dao.Uploadfile
-		filetmp.Id, err = res[i].GetfileId()
+		filetmp.Id, err = dao.GetFileId(tableName, res[i].GetId())
 		NowFileId := r.FormValue("data[" + id[i] + "][fileid]")
 		if err != nil {
 			log.Println("failed to get fileId in func Editdatatablesline")
 			return
 		}
-
 		if filetmp.Id != "" && filetmp.Id != NowFileId{
 			//if need delete local file you should have this
 			//err = filetmp.LoadUploadfile()
@@ -153,7 +140,6 @@ func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res
 			//	log.Println("failed to load uploadfile in func deldatatablesline")
 			//	return
 			// }
-
 			err = filetmp.Remove()
 			if err != nil {
 				log.Println("failed to remove uploadfile in func deldatatablesline")
@@ -161,24 +147,28 @@ func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res
 			}
 		}
 
-		err = res[i].Update()
+		err = dao.Update(tableName, res[i].GetId(), res[i])
 		if err != nil {
 			log.Println("failed to update datatables line")
 			return
 		}
-
 	}
 	return
 }
 
+func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string, tableName string) (err error) {
 
-func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string) (err error) {
+	res := make([]dao.EditDataTables,len(id))
+	for i := range id {
+		res[i], err = dao.GetDataStruct(tableName)
+		if err != nil {
+			log.Println(err.Error(), " failed to GetDataStruct in func Createdatatablesline")
+			return
+		}
+		res[i].LoadDataFromPostForm(r, id[i])
 
-	res := loadUserInfoForDatatables(r, id)
-
-	for i := range res {
 		var filetmp dao.Uploadfile
-		filetmp.Id, err = res[i].GetfileId()
+		filetmp.Id, err = dao.GetFileId(tableName, res[i].GetId())
 		if err != nil {
 			log.Println("failed to get fileId in func Deldatatablesline")
 			return
@@ -190,7 +180,6 @@ func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string) (err 
 			//	log.Println("failed to load uploadfile in func deldatatablesline")
 			//	return
 			//}
-
 			err = filetmp.Remove()
 			if err != nil {
 				log.Println("failed to remove uploadfile in func deldatatablesline")
@@ -198,7 +187,7 @@ func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string) (err 
 			}
 		}
 
-		err = res[i].Remove()
+		err = dao.Remove(tableName, res[i].GetId())
 		if err != nil {
 			log.Println("failed to delete datatables line")
 			return
@@ -228,23 +217,23 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 				if action == "create"  || action == "edit"{
 					var res []dao.EditDataTables
 					if action == "create" {
-						res, _ = Createdatatablesline(w,r,id)
+						res, _ = Createdatatablesline(w, r, id, NowTable)
 					}else {
-						res, _ = Editdatatablesline(w,r,id)
+						res, _ = Editdatatablesline(w, r, id, NowTable)
 					}
 
 					for i := range res {
-						tmp.Data = append(tmp.Data, res[i].GetOneById())
+						tmp.Data = append(tmp.Data, dao.GetOneById(NowTable, res[i].GetId()))
 					}
 
 
 				}else if action == "remove"{
-					Deldatatablesline(w,r,id)
+					Deldatatablesline(w, r, id, NowTable)
 				}
 			}
 		}
 	} else if r.Method == "GET" {
-		tmp.Data, err = new(dao.UserLoginInfo).GetAll()
+		tmp.Data, err = dao.GetAll(NowTable)
 		if err != nil {
 			log.Println(err.Error(), " failed to GET in func ViewHandle")
 			return
@@ -257,8 +246,7 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 		log.Println(err.Error(), " failed to GetAllUploadfile in func ViewHandle")
 		return
 	}
-	len := len(res)
-	for i := 0; i < len; i++ {
+	for i := range res{
 		tmp.Files.Files.Set(res[i].Id, res[i])
 	}
 

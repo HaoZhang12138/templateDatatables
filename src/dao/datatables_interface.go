@@ -1,10 +1,8 @@
 package dao
 
+import "net/http"
+
 type EditDataTables interface {
-	Insert() (error)
-	Remove() (error)
-	GetfileId()(string, error)
-	GetOneById()(interface{})
-	Update()(error)
-	GetAll()([]interface{}, error)
+	LoadDataFromPostForm(*http.Request,string)
+	GetId()(string)
 }

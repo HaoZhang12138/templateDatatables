@@ -110,6 +110,15 @@ func (this *UserLoginInfo) Check()(ok bool, err error){
 	return
 }
 
+func (this *UserLoginInfo)Insert()(err error) {
+
+	f := func(c *mgo.Collection) (interface{}, error) {
+		return nil, c.Insert(this)
+	}
+	_, err = doCllection(collections, f)
+	return
+}
+
 func Listkey() (info []string, err error) {
 
 	result := []UserLoginInfo{}
