@@ -35,11 +35,13 @@ func (this *Uploadfile) Insert()(err error) {
 
 func (this *Uploadfile) Remove()(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
+
 		/*err := os.Remove(this.Systempath)
 		if err != nil {
 			log.Println("failed to delete file")
 			return nil,err
 		}*/ // delete the local file
+
 		return nil, c.Remove(bson.M{"_id": this.Id})
 	}
 	_, err = doCllection(uploadtable, f)

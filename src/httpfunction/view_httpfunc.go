@@ -14,14 +14,14 @@ import (
 	"io"
 )
 
-type uploadid struct {
-	Id string `json:"id"`
-}
-
-type ret struct {
-	Data []dao.UserLoginInfo  `json:"data"`
+type Datatablesdata struct {
+	Data []interface{}  `json:"data"`
 	Files uploadfile_tmp `json:"files,omitempty"`
 	Upload uploadid `json:"upload,omitempty"`
+}
+
+type uploadid struct {
+	Id string `json:"id"`
 }
 
 type uploadfile_tmp struct {
@@ -43,8 +43,8 @@ func loadUserInfoForDatatables(r *http.Request,id []string)(ret []dao.EditDataTa
 		info.Age  = r.FormValue("data[" + id[i] + "][age]")
 		info.Tel  = r.FormValue("data[" + id[i] + "][tel]")
 		info.Sex  = r.FormValue("data[" + id[i] + "][sex]")
-		info.Id   = r.FormValue("data[" + id[i] + "][id]")
-		info.FileId = r.FormValue("data[" + id[i] + "][file]")
+		info.Id   = r.FormValue("data[" + id[i] + "][_id]")
+		info.FileId = r.FormValue("data[" + id[i] + "][fileid]")
 
 		if info.Id == "" {
 			info.Id = strconv.Itoa(dao.GetNextId())
@@ -65,7 +65,7 @@ func GetDataTableId(r *http.Request)(id []string, err error ){
 		id = make([]string, 0)
 		err = errors.New("failed to parse id")
 		for k,v := range r.Form{
-			if strings.Contains(k,"id"){
+			if strings.Contains(k,"_id"){
 				id = append(id, v[0])
 				err = nil
 			}
@@ -140,18 +140,19 @@ func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res
 
 		var filetmp dao.Uploadfile
 		filetmp.Id, err = res[i].GetfileId()
-		NowFileId := r.FormValue("data[" + id[i] + "][file]")
+		NowFileId := r.FormValue("data[" + id[i] + "][fileid]")
 		if err != nil {
-			log.Println("failed to get fileId from userlogininfo")
+			log.Println("failed to get fileId in func Editdatatablesline")
 			return
 		}
 
 		if filetmp.Id != "" && filetmp.Id != NowFileId{
-			err = filetmp.LoadUploadfile()
-			if err != nil {
-				log.Println("failed to load uploadfile in func deldatatablesline")
-				return
-			}
+			//if need delete local file you should have this
+			//err = filetmp.LoadUploadfile()
+			//if err != nil {
+			//	log.Println("failed to load uploadfile in func deldatatablesline")
+			//	return
+			// }
 
 			err = filetmp.Remove()
 			if err != nil {
@@ -167,7 +168,6 @@ func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res
 		}
 
 	}
-
 	return
 }
 
@@ -180,15 +180,16 @@ func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string) (err 
 		var filetmp dao.Uploadfile
 		filetmp.Id, err = res[i].GetfileId()
 		if err != nil {
-			log.Println("failed to get fileId from userlogininfo")
+			log.Println("failed to get fileId in func Deldatatablesline")
 			return
 		}
 		if filetmp.Id != ""{
-			err = filetmp.LoadUploadfile()
-			if err != nil {
-				log.Println("failed to load uploadfile in func deldatatablesline")
-				return
-			}
+			//if need delete local file you should have this
+			//err = filetmp.LoadUploadfile()
+			//if err != nil {
+			//	log.Println("failed to load uploadfile in func deldatatablesline")
+			//	return
+			//}
 
 			err = filetmp.Remove()
 			if err != nil {
@@ -208,18 +209,19 @@ func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string) (err 
 }
 
 
-
 func ViewHandle(w http.ResponseWriter, r *http.Request){
 
-
-	var tmp ret
+	var tmp Datatablesdata
 	var err error
 	if r.Method == "POST"{
 		if r.ContentLength != 0 {
 			action := r.FormValue("action")
 			if action == "upload" {
 				tmp.Upload.Id, err = Getpostfile(w, r)
-				check_error(err)
+				if err != nil {
+					log.Println(err.Error(), " failed to action upload in func ViewHandle")
+					return
+				}
 
 			} else {
 				id, _ := GetDataTableId(r)
@@ -232,13 +234,7 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 					}
 
 					for i := range res {
-						data, ok := res[i].GetOneById().(dao.UserLoginInfo)
-						if ok {
-							tmp.Data = append(tmp.Data, data)
-						} else {
-							log.Println("failed to type assertion")
-							return
-						}
+						tmp.Data = append(tmp.Data, res[i].GetOneById())
 					}
 
 
@@ -248,20 +244,29 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 			}
 		}
 	} else if r.Method == "GET" {
-		tmp.Data, err = dao.GetAllUserinfo()
-		check_error(err)
+		tmp.Data, err = new(dao.UserLoginInfo).GetAll()
+		if err != nil {
+			log.Println(err.Error(), " failed to GET in func ViewHandle")
+			return
+		}
 	}
 
 	tmp.Files.Files = simplejson.New()
 	res, err := dao.GetAllUploadfile()
-	check_error(err)
+	if err != nil {
+		log.Println(err.Error(), " failed to GetAllUploadfile in func ViewHandle")
+		return
+	}
 	len := len(res)
 	for i := 0; i < len; i++ {
 		tmp.Files.Files.Set(res[i].Id, res[i])
 	}
 
 	t, err := json.Marshal(tmp)
-	check_error(err)
+	if err != nil {
+		log.Println(err.Error(), " failed to marshal to json in func ViewHandle")
+		return
+	}
 	w.Write(t)
 }
 

@@ -4,27 +4,25 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	"errors"
 )
 
-func GetAllUserinfo()(ret []UserLoginInfo, err error){
+func (this *UserLoginInfo)GetAll()(ret []interface{}, err error){
 
-	result := make([]UserLoginInfo, 0)
+	ret = make([]interface{}, 0)
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{}).All(&result)
+		return nil, c.Find(bson.M{}).All(&ret)
 	}
-
 	_, err = doCllection(collections, f)
 	if err != nil {
+		log.Println("failed to get all data")
 		return
 	}
-	ret = result
 	return
 }
 
 func (this *UserLoginInfo) GetOneById()(interface{}) {
 
-	var result UserLoginInfo
+	var result interface{}
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{"_id": this.Id}).One(&result)
 	}
@@ -64,21 +62,17 @@ func (this *UserLoginInfo) Update()(err error) {
 }
 
 func (this *UserLoginInfo) GetfileId()(ret string, err error){
+	ans := make(map[string]string)
 	f := func(c *mgo.Collection) (interface{}, error) {
-		var ret UserLoginInfo
-		err := c.Find(bson.M{"_id": this.Id}).One(&ret)
-		return ret, err
+		return nil, c.Find(bson.M{"_id": this.Id}).Select(bson.M{"fileid": 1}).One(&ans)
 	}
-	ans, err := doCllection(collections, f)
+	_, err = doCllection(collections, f)
 	if err != nil {
-		log.Println("failed to get fileId")
+		log.Println("failed to get fileId in function GetfileId")
 		return
 	}
-	t, ok := ans.(UserLoginInfo)
-	if !ok {
-		err = errors.New("fail to type assertion")
-	}
-	ret = t.FileId
+	ret = ans["fileid"]
+
 	return
 
 }

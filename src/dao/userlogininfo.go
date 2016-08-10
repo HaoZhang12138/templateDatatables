@@ -13,7 +13,7 @@ type UserLoginInfo struct {
 	Age string  `json:"age"`
 	Tel string  `json:"tel"`
 	Id string `json:"id" bson:"_id"`
-	FileId string `json:"file"`
+	FileId string `json:"fileid"`
 }
 
 /*func (this *UserLoginInfo) Insert()(err error) {

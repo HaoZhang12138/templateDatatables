@@ -5,10 +5,10 @@ $(document).ready(function() {
     editor = new $.fn.dataTable.Editor( {
         ajax: "/view",
         table: "#example",
-        idSrc: "id",
+        idSrc: "_id",
         fields: [{
             label: "Id:",
-            name: "id",
+            name: "_id",
             type: "hidden"
         },{
             label: "User:",
@@ -35,7 +35,7 @@ $(document).ready(function() {
             ],
         },{
             label: "Upload:",
-            name: "file",
+            name: "fileid",
             type: "upload",
             display: function ( file_id ) {
                 return ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img> ';
@@ -81,14 +81,14 @@ $(document).ready(function() {
         return '<a href=/uploads/test.jpg' + '>';
     }},*/
 
-            { data: "id"    },
+            { data: "_id"   },
             { data: "user"  },
             { data: "pass"  },
             { data: "name"  },
             { data: "age"   },
             { data: "tel"   },
             { data: "sex"   },
-            { data: "file",
+            { data: "fileid",
                 render: function ( file_id ) {
               //  alert(table.file( 'files', file_id ))
                     return file_id ?
