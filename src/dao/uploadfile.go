@@ -3,8 +3,6 @@ package dao
 import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"os"
-	"log"
 )
 
 type Uploadfile struct {
@@ -41,7 +39,7 @@ func (this *Uploadfile) Remove()(err error){
 		if err != nil {
 			log.Println("failed to delete file")
 			return nil,err
-		}*/
+		}*/ // delete the local file
 		return nil, c.Remove(bson.M{"_id": this.Id})
 	}
 	_, err = doCllection(uploadtable, f)

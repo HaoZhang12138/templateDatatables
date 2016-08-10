@@ -31,45 +31,48 @@ type uploadfile_tmp struct {
 const UPLOAD_DIR = "/home/zh/GoPro/firstRedis/html/uploads"
 const PreWebPath = "/uploads/"
 
-func loadUserInfoForDatatables(r *http.Request,id string)(ret dao.EditDataTables){
+func loadUserInfoForDatatables(r *http.Request,id []string)(ret []dao.EditDataTables){
 
-	var info *dao.UserLoginInfo
-	info = new(dao.UserLoginInfo)
-	info.User = r.FormValue("data[" + id + "][user]")
-	info.Pass = r.FormValue("data[" + id + "][pass]")
-	info.Name = r.FormValue("data[" + id + "][name]")
-	info.Age  = r.FormValue("data[" + id + "][age]")
-	info.Tel  = r.FormValue("data[" + id + "][tel]")
-	info.Sex  = r.FormValue("data[" + id + "][sex]")
-	info.Id   = r.FormValue("data[" + id + "][id]")
-	info.FileId = r.FormValue("data[" + id + "][file]")
+	ret = make([]dao.EditDataTables, 0)
+	for i := range id {
+		var info *dao.UserLoginInfo
+		info = new(dao.UserLoginInfo)
+		info.User = r.FormValue("data[" + id[i] + "][user]")
+		info.Pass = r.FormValue("data[" + id[i] + "][pass]")
+		info.Name = r.FormValue("data[" + id[i] + "][name]")
+		info.Age  = r.FormValue("data[" + id[i] + "][age]")
+		info.Tel  = r.FormValue("data[" + id[i] + "][tel]")
+		info.Sex  = r.FormValue("data[" + id[i] + "][sex]")
+		info.Id   = r.FormValue("data[" + id[i] + "][id]")
+		info.FileId = r.FormValue("data[" + id[i] + "][file]")
 
-	if info.Id == "" {
-		info.Id = strconv.Itoa(dao.GetNextId())
+		if info.Id == "" {
+			info.Id = strconv.Itoa(dao.GetNextId())
+		}
+		ret = append(ret, info)
 	}
-	ret = info
 	return
 }
 
 
-func GetDataTableId(r *http.Request)(id string, err error ){
+func GetDataTableId(r *http.Request)(id []string, err error ){
 
 	action := r.FormValue("action")
+	id = make([]string, 0)
 	if action == "create" {
-		id = "0"
+		id = append(id, "0")
 	}else {
+		id = make([]string, 0)
 		err = errors.New("failed to parse id")
 		for k,v := range r.Form{
 			if strings.Contains(k,"id"){
-				id = v[0]
+				id = append(id, v[0])
 				err = nil
-				break
 			}
 		}
 		if err != nil {
 			log.Println("failed to get datatables id")
 		}
-
 	}
 	return
 }
@@ -116,56 +119,96 @@ func Getpostfile(w http.ResponseWriter, r *http.Request) (uploadid string, err e
 }
 
 
-func Createdatatablesline(w http.ResponseWriter,r *http.Request, id string) (res dao.EditDataTables, err error) {
+func Createdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res []dao.EditDataTables, err error) {
 	res = loadUserInfoForDatatables(r, id)
-	res.Insert()
-	if err != nil {
-		log.Println("failed to create datatables row")
+	for i := range res {
+		err = res[i].Insert()
+		if err != nil {
+			log.Println("failed to create datatables row")
+			return
+		}
 	}
 
 	return
 }
 
-func Editdatatablesline(w http.ResponseWriter,r *http.Request, id string) (res dao.EditDataTables,err error) {
+func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res []dao.EditDataTables,err error) {
 
-	err = Deldatatablesline(w,r,id)
-	if err != nil {
-		log.Println("failed to delete datatables row")
-		return
-	}
+	res = loadUserInfoForDatatables(r, id)
 
-	res = loadUserInfoForDatatables(r,id)
-	err = res.Insert()
-	if err != nil {
-		log.Println("failed to insert datatables row")
-		return
+	for i := range res {
+
+		var filetmp dao.Uploadfile
+		filetmp.Id, err = res[i].GetfileId()
+		NowFileId := r.FormValue("data[" + id[i] + "][file]")
+		if err != nil {
+			log.Println("failed to get fileId from userlogininfo")
+			return
+		}
+
+		if filetmp.Id != "" && filetmp.Id != NowFileId{
+			err = filetmp.LoadUploadfile()
+			if err != nil {
+				log.Println("failed to load uploadfile in func deldatatablesline")
+				return
+			}
+
+			err = filetmp.Remove()
+			if err != nil {
+				log.Println("failed to remove uploadfile in func deldatatablesline")
+				return
+			}
+		}
+
+		err = res[i].Remove()
+		if err != nil {
+			log.Println("failed to delete datatables line")
+			return
+		}
+
+		err = res[i].Insert()
+		if err != nil {
+			log.Println("failed to insert datatables row")
+			return
+		}
 	}
 
 	return
 }
 
 
-func Deldatatablesline(w http.ResponseWriter,r *http.Request, id string) (err error) {
+func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string) (err error) {
 
 	res := loadUserInfoForDatatables(r, id)
 
-	var filetmp dao.Uploadfile
-	filetmp.Id, err = res.GetfileId()
-	if err != nil {
-		log.Println("failed to get fileId from userlogininfo")
-		return
-	}
-	if filetmp.Id != "" {
-		err = filetmp.LoadUploadfile()
-		check_error(err)
-		err = filetmp.Remove()
-		check_error(err)
+	for i := range res {
+		var filetmp dao.Uploadfile
+		filetmp.Id, err = res[i].GetfileId()
+		if err != nil {
+			log.Println("failed to get fileId from userlogininfo")
+			return
+		}
+		if filetmp.Id != ""{
+			err = filetmp.LoadUploadfile()
+			if err != nil {
+				log.Println("failed to load uploadfile in func deldatatablesline")
+				return
+			}
+
+			err = filetmp.Remove()
+			if err != nil {
+				log.Println("failed to remove uploadfile in func deldatatablesline")
+				return
+			}
+		}
+
+		err = res[i].Remove()
+		if err != nil {
+			log.Println("failed to delete datatables line")
+			return
+		}
 	}
 
-	err = res.Remove()
-	if err != nil {
-		log.Println("failed to delete datatables line")
-	}
 	return
 }
 
@@ -186,20 +229,23 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 			} else {
 				id, _ := GetDataTableId(r)
 				if action == "create"  || action == "edit"{
-					var res dao.EditDataTables
+					var res []dao.EditDataTables
 					if action == "create" {
 						res, _ = Createdatatablesline(w,r,id)
 					}else {
 						res, _ = Editdatatablesline(w,r,id)
 					}
 
-					data, ok := res.GetOneById().(dao.UserLoginInfo)
-					if ok {
-						tmp.Data = append(tmp.Data, data)
-					} else {
-						log.Println("failed to type assertion")
-						return
+					for i := range res {
+						data, ok := res[i].GetOneById().(dao.UserLoginInfo)
+						if ok {
+							tmp.Data = append(tmp.Data, data)
+						} else {
+							log.Println("failed to type assertion")
+							return
+						}
 					}
+
 
 				}else if action == "remove"{
 					Deldatatablesline(w,r,id)
