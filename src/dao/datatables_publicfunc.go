@@ -63,11 +63,10 @@ func GetFileId(tableName string, Id string)(ret string, err error){
 
 }
 
-func GetOneById(tableName string, Id string)(interface{}) {
-
-	var result interface{}
+func GetOneById(tableName string, Id string)(interface{}){
+	var ret interface{}
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{"_id": Id}).One(&result)
+		return nil, c.Find(bson.M{"_id": Id}).One(&ret)
 	}
 	_, err := doCllection(tableName, f)
 	if err != nil {
@@ -75,5 +74,5 @@ func GetOneById(tableName string, Id string)(interface{}) {
 		return nil
 	}
 
-	return result
+	return ret
 }

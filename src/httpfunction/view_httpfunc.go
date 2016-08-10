@@ -30,7 +30,7 @@ type uploadfile_tmp struct {
 
 const UPLOAD_DIR = "/home/zh/GoPro/firstRedis/html/uploads"
 const PreWebPath = "/uploads/"
-const NowTable = "userinfo"
+const URLTableName = "tableName"
 
 func GetDataTableId(r *http.Request)(id []string, err error ){
 
@@ -202,6 +202,9 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 
 	var tmp Datatablesdata
 	var err error
+	flag := false
+	tableName := r.URL.Query().Get(URLTableName)
+
 	if r.Method == "POST"{
 		if r.ContentLength != 0 {
 			action := r.FormValue("action")
@@ -211,43 +214,48 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 					log.Println(err.Error(), " failed to action upload in func ViewHandle")
 					return
 				}
-
+				flag = true
 			} else {
 				id, _ := GetDataTableId(r)
 				if action == "create"  || action == "edit"{
 					var res []dao.EditDataTables
 					if action == "create" {
-						res, _ = Createdatatablesline(w, r, id, NowTable)
+						res, _ = Createdatatablesline(w, r, id, tableName)
 					}else {
-						res, _ = Editdatatablesline(w, r, id, NowTable)
+						res, _ = Editdatatablesline(w, r, id, tableName)
 					}
 
 					for i := range res {
-						tmp.Data = append(tmp.Data, dao.GetOneById(NowTable, res[i].GetId()))
+						//data, _:= dao.GetDataStruct(tableName)
+						//dao.GetOneById(tableName, res[i].GetId(), &data)
+						//fmt.Println(data)
+						tmp.Data = append(tmp.Data, dao.GetOneById(tableName, res[i].GetId()))
 					}
-
+					flag = true
 
 				}else if action == "remove"{
-					Deldatatablesline(w, r, id, NowTable)
+					Deldatatablesline(w, r, id, tableName)
 				}
 			}
 		}
 	} else if r.Method == "GET" {
-		tmp.Data, err = dao.GetAll(NowTable)
+		tmp.Data, err = dao.GetAll(tableName)
 		if err != nil {
 			log.Println(err.Error(), " failed to GET in func ViewHandle")
 			return
 		}
+		flag = true
 	}
-
-	tmp.Files.Files = simplejson.New()
-	res, err := dao.GetAllUploadfile()
-	if err != nil {
-		log.Println(err.Error(), " failed to GetAllUploadfile in func ViewHandle")
-		return
-	}
-	for i := range res{
-		tmp.Files.Files.Set(res[i].Id, res[i])
+	if flag {
+		tmp.Files.Files = simplejson.New()
+		res, err := dao.GetAllUploadfile()
+		if err != nil {
+			log.Println(err.Error(), " failed to GetAllUploadfile in func ViewHandle")
+			return
+		}
+		for i := range res{
+			tmp.Files.Files.Set(res[i].Id, res[i])
+		}
 	}
 
 	t, err := json.Marshal(tmp)

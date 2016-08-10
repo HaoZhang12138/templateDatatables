@@ -2,9 +2,10 @@ var editor; // use a global for the submit and return data rendering in the exam
 var table;
 
 $(document).ready(function() {
+    var tableName = $("table").attr("id");
     editor = new $.fn.dataTable.Editor( {
-        ajax: "/view",
-        table: "#example",
+        ajax: "/view?tableName=" + tableName,
+        table: "#"+ tableName,
         idSrc: "_id",
         fields: [{
             label: "Id:",
@@ -65,10 +66,10 @@ $(document).ready(function() {
 
 
 
-   table =  $('#example').DataTable( {
+   table =  $("#"+ tableName).DataTable( {
         dom: "Bfrtip",
         ajax: {
-            url: "/view"
+            url: "/view?tableName=" + tableName
         },
         columns: [
            /* {
