@@ -37,7 +37,6 @@ func (this *UserLoginInfo) GetOneById()(interface{}) {
 	return result
 }
 
-
 func (this *UserLoginInfo) Insert()(err error) {
 
 	f := func(c *mgo.Collection) (interface{}, error) {
@@ -54,6 +53,14 @@ func (this *UserLoginInfo) Remove()(err error){
 	_, err = doCllection(collections, f)
 	return
 
+}
+
+func (this *UserLoginInfo) Update()(err error) {
+	f := func(c *mgo.Collection) (interface{}, error) {
+		return nil, c.UpdateId(this.Id, this)
+	}
+	_, err = doCllection(collections, f)
+	return
 }
 
 func (this *UserLoginInfo) GetfileId()(ret string, err error){

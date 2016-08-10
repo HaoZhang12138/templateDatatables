@@ -5,4 +5,5 @@ type EditDataTables interface {
 	Remove() (error)
 	GetfileId()(string, error)
 	GetOneById()(interface{})
+	Update()(err error)
 }

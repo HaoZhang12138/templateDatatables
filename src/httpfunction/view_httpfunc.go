@@ -160,17 +160,12 @@ func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string) (res
 			}
 		}
 
-		err = res[i].Remove()
+		err = res[i].Update()
 		if err != nil {
-			log.Println("failed to delete datatables line")
+			log.Println("failed to update datatables line")
 			return
 		}
 
-		err = res[i].Insert()
-		if err != nil {
-			log.Println("failed to insert datatables row")
-			return
-		}
 	}
 
 	return
