@@ -26,7 +26,7 @@ func (this *UserInfoDatatables)LoadDataFromPostForm(r *http.Request,id string){
 	this.Age  = r.FormValue("data[" + id + "][age]")
 	this.Tel  = r.FormValue("data[" + id + "][tel]")
 	this.Sex  = r.FormValue("data[" + id + "][sex]")
-	this.Id   = r.FormValue("data[" + id + "][_id]")
+	this.Id   = r.FormValue("data[" + id + "][id]")
 	this.FileId = r.FormValue("data[" + id + "][fileid]")
 
 	if this.Id == "" {

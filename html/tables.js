@@ -6,10 +6,10 @@ $(document).ready(function() {
     editor = new $.fn.dataTable.Editor( {
         ajax: "/view?tableName=" + tableName,
         table: "#"+ tableName,
-        idSrc: "_id",
+        idSrc: "id",
         fields: [{
             label: "Id:",
-            name: "_id",
+            name: "id",
             type: "hidden"
         },{
             label: "User:",
@@ -82,7 +82,7 @@ $(document).ready(function() {
         return '<a href=/uploads/test.jpg' + '>';
     }},*/
 
-            { data: "_id"   },
+            { data: "id"   },
             { data: "user"  },
             { data: "pass"  },
             { data: "name"  },

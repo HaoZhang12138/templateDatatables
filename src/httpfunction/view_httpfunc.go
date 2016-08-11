@@ -15,7 +15,7 @@ import (
 )
 
 type Datatablesdata struct {
-	Data []interface{}  `json:"data"`
+	Data interface{}  `json:"data"`
 	Files uploadfile_tmp `json:"files,omitempty"`
 	Upload uploadid `json:"upload,omitempty"`
 }
@@ -31,6 +31,7 @@ type uploadfile_tmp struct {
 const UPLOAD_DIR = "/home/zh/GoPro/firstRedis/html/uploads"
 const PreWebPath = "/uploads/"
 const URLTableName = "tableName"
+//var mutexlock sync.Mutex
 
 func GetDataTableId(r *http.Request)(id []string, err error ){
 
@@ -42,7 +43,7 @@ func GetDataTableId(r *http.Request)(id []string, err error ){
 		id = make([]string, 0)
 		err = errors.New("failed to parse id")
 		for k,v := range r.Form{
-			if strings.Contains(k,"_id"){
+			if strings.Contains(k,"[id]"){
 				id = append(id, v[0])
 				err = nil
 			}
@@ -97,6 +98,8 @@ func Getpostfile(w http.ResponseWriter, r *http.Request) (uploadid string, err e
 
 func Createdatatablesline(w http.ResponseWriter,r *http.Request, id []string, tableName string) (res []dao.EditDataTables, err error) {
 
+	//mutexlock.Lock()
+	//defer mutexlock.Unlock()
 	res = make([]dao.EditDataTables, len(id))
 	for i := range id {
 		res[i], err = dao.GetDataStruct(tableName)
@@ -117,6 +120,8 @@ func Createdatatablesline(w http.ResponseWriter,r *http.Request, id []string, ta
 
 func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string, tableName string) (res []dao.EditDataTables,err error) {
 
+	//mutexlock.Lock()
+	//defer mutexlock.Unlock()
 	res = make([]dao.EditDataTables, len(id))
 	for i := range id {
 		res[i], err = dao.GetDataStruct(tableName)
@@ -158,6 +163,8 @@ func Editdatatablesline(w http.ResponseWriter,r *http.Request, id []string, tabl
 
 func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string, tableName string) (err error) {
 
+	//mutexlock.Lock()
+	//defer mutexlock.Unlock()
 	res := make([]dao.EditDataTables,len(id))
 	for i := range id {
 		res[i], err = dao.GetDataStruct(tableName)
@@ -192,6 +199,7 @@ func Deldatatablesline(w http.ResponseWriter,r *http.Request, id []string, table
 			log.Println("failed to delete datatables line")
 			return
 		}
+
 	}
 
 	return
@@ -224,13 +232,21 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 					}else {
 						res, _ = Editdatatablesline(w, r, id, tableName)
 					}
-
+					dataslice := make([]interface{}, 0)
 					for i := range res {
-						//data, _:= dao.GetDataStruct(tableName)
-						//dao.GetOneById(tableName, res[i].GetId(), &data)
-						//fmt.Println(data)
-						tmp.Data = append(tmp.Data, dao.GetOneById(tableName, res[i].GetId()))
+						data, err := dao.GetDataStruct(tableName)
+						if err != nil {
+							log.Println("failed to get datastruct %v", err.Error())
+							return
+						}
+						err = dao.GetOneById(tableName, res[i].GetId(), data)
+						if err != nil {
+							log.Println("failed to get one data by id %v", err.Error())
+							return
+						}
+						dataslice = append(dataslice, data)
 					}
+					tmp.Data = dataslice
 					flag = true
 
 				}else if action == "remove"{
@@ -239,13 +255,23 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 			}
 		}
 	} else if r.Method == "GET" {
-		tmp.Data, err = dao.GetAll(tableName)
+
+		tmp.Data, err = dao.GetDataStructSilce(tableName)
 		if err != nil {
-			log.Println(err.Error(), " failed to GET in func ViewHandle")
+			log.Println("falied to get datastruct silce, err: ", err.Error())
+			return
+		}
+
+		err = dao.GetAll(tableName, tmp.Data)
+		if err != nil {
+			log.Println("failed to get all data, err: ",err.Error())
 			return
 		}
 		flag = true
 	}
+
+
+	//if flag is true, add all file information to tmp
 	if flag {
 		tmp.Files.Files = simplejson.New()
 		res, err := dao.GetAllUploadfile()
@@ -258,6 +284,7 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 		}
 	}
 
+	//encode to json
 	t, err := json.Marshal(tmp)
 	if err != nil {
 		log.Println(err.Error(), " failed to marshal to json in func ViewHandle")
@@ -265,5 +292,7 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 	}
 	w.Write(t)
 }
+
+
 
 

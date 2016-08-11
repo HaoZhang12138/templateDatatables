@@ -6,11 +6,10 @@ import (
 	"log"
 )
 
-func  GetAll(tableName string)(ret []interface{}, err error){
+func  GetAll(tableName string, data interface{})(err error){
 
-	ret = make([]interface{}, 0)
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{}).All(&ret)
+		return nil, c.Find(bson.M{}).All(data)
 	}
 	_, err = doCllection(tableName, f)
 	if err != nil {
@@ -63,16 +62,15 @@ func GetFileId(tableName string, Id string)(ret string, err error){
 
 }
 
-func GetOneById(tableName string, Id string)(interface{}){
-	var ret interface{}
+func GetOneById(tableName string, Id string, data interface{})(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{"_id": Id}).One(&ret)
+		return nil, c.Find(bson.M{"_id": Id}).One(data)
 	}
-	_, err := doCllection(tableName, f)
+	_, err = doCllection(tableName, f)
+
 	if err != nil {
 		log.Println("failed to get one userinfo")
 		return nil
 	}
-
-	return ret
+	return
 }

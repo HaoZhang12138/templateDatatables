@@ -55,36 +55,6 @@ func TestUserLoginInfo_Exist2(t *testing.T) {
 	}
 }
 
-func TestUserLoginInfo_GetUserinfo(t *testing.T) {
-	t1 :=  UserLoginInfo{User: "a"}
-
-	info, err := t1.GetUserinfo()
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	for key, val := range info {
-		if val != "a"{
-			t.Error("GetUserinfo error on", key)
-		}
-	}
-
-}
-
-func TestUserLoginInfo_GetUserinfo2(t *testing.T) {
-	t1 :=  UserLoginInfo{User: "1"}
-
-	info, err := t1.GetUserinfo()
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	for key, val := range info {
-		if val != "1"{
-			t.Error("GetUserinfo error on", key)
-		}
-	}
-}
 
 func TestUserLoginInfo_Insert(t *testing.T) {
 	t1 := UserLoginInfo{User:"test", Pass:"test"}
