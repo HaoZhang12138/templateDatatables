@@ -12,6 +12,8 @@ import (
 	"log"
 	"os"
 	"io"
+	"reflect"
+	"fmt"
 )
 
 type Datatablesdata struct {
@@ -266,6 +268,10 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 		if err != nil {
 			log.Println("failed to get all data, err: ",err.Error())
 			return
+		}
+		if reflect.ValueOf(tmp.Data).Elem().Len() == 0 {
+			fmt.Println("make the tmp.data is not empty")
+			tmp.Data = make([]interface{}, 0)
 		}
 		flag = true
 	}
