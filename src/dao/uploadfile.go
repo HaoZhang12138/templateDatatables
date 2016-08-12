@@ -15,7 +15,7 @@ type Uploadfile struct {
 
 const uploadtable = "files"
 
-func (this *Uploadfile) LoadUploadfile()(err error) {
+func (this *Uploadfile) GetOneUploadfile()(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{"_id": this.Id}).One(this)
 	}

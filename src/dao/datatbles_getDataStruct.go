@@ -12,7 +12,7 @@ func GetDataStruct(tableName string) (ret EditDataTables,err error) {
 		break
 	default:
 		err = errors.New("tablename is not found")
-		log.Println(err.Error(), " failed to match tablename in func GetDataStruct")
+		log.Println("failed to match tablename in func GetDataStruct, err: ", err.Error())
 	}
 	return
 }
@@ -24,7 +24,7 @@ func GetDataStructSilce(tableName string) (ret interface{},err error) {
 		break
 	default:
 		err = errors.New("tablename is not found")
-		log.Println(err.Error(), " failed to match tablename in func GetDataStruct")
+		log.Println("failed to match tablename in func GetDataStruct, err: ", err.Error())
 	}
 	return
 }
