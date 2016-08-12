@@ -64,8 +64,6 @@ $(document).ready(function() {
         } );
     } );*/
 
-
-
    table =  $("#"+ tableName).DataTable( {
         dom: "Bfrtip",
         ajax: {

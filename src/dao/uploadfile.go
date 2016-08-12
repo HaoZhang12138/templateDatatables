@@ -13,27 +13,26 @@ type Uploadfile struct {
 	Systempath string  `json:"systempath"`
 }
 
-const uploadtable = "files"
 
-func (this *Uploadfile) GetOneUploadfile()(err error) {
+func (this *Uploadfile) GetOneUploadfile(uploadtablename string)(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{"_id": this.Id}).One(this)
 	}
-	_, err = doCllection(uploadtable, f)
+	_, err = doCllection(uploadtablename, f)
 	return
 }
 
 
-func (this *Uploadfile) Insert()(err error) {
+func (this *Uploadfile) Insert(uploadtablename string)(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Insert(this)
 	}
-	_, err = doCllection(uploadtable, f)
+	_, err = doCllection(uploadtablename, f)
 	return
 }
 
 
-func (this *Uploadfile) Remove()(err error){
+func (this *Uploadfile) Remove(uploadtablename string)(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
 
 		/*err := os.Remove(this.Systempath)
@@ -44,17 +43,17 @@ func (this *Uploadfile) Remove()(err error){
 
 		return nil, c.Remove(bson.M{"_id": this.Id})
 	}
-	_, err = doCllection(uploadtable, f)
+	_, err = doCllection(uploadtablename, f)
 	return
 }
 
-func GetAllUploadfile() (ret []Uploadfile, err error) {
+func GetAllUploadfile(uploadtablename string) (ret []Uploadfile, err error) {
 	result := make([]Uploadfile, 0)
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{}).All(&result)
 	}
 
-	_, err = doCllection(uploadtable, f)
+	_, err = doCllection(uploadtablename, f)
 	if err != nil {
 		return
 	}

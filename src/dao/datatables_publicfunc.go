@@ -4,7 +4,17 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
+	"net/http"
+	"reflect"
+	"strings"
+	"errors"
+	"strconv"
+	"fmt"
 )
+
+type EditDataTables interface {
+	GetId()(string)
+}
 
 func GetAll(tableName string, data interface{})(err error){
 
@@ -74,11 +84,10 @@ func GetOneById(tableName string, Id string, data interface{})(err error){
 	return
 }
 
-/*
-func CommonLoadFromPostForm(req * http.Request,id string,ptrdata interface{})(err error)  {
+func CommonLoadFromPostForm(req *http.Request,id string,ptrdata interface{})(err error)  {
 	// parse form
 	if err = req.ParseForm();err !=nil{
-		log.Error("failed to parseform:%v",err)
+		fmt.Errorf("failed to parseform:%v",err)
 		return
 	}
 
@@ -88,36 +97,33 @@ func CommonLoadFromPostForm(req * http.Request,id string,ptrdata interface{})(er
 		prefix := "data["+id+"]["
 		fieldInfo := v.Type().Field(i)
 		tag := fieldInfo.Tag
-		jsonname := tag.Get("json")
-		if jsonname == ""{
-			jsonname = strings.ToLower(fieldInfo.Name)
+		jsonName := tag.Get("json")
+		if jsonName == ""{
+			jsonName = strings.ToLower(fieldInfo.Name)
 		}
-		prefix = prefix+jsonname+"]"
+		prefix = prefix+jsonName+"]"
 		fields[prefix] = v.Field(i)
 	}
 
 	// take from form
-	for name, values := range req.Form{
+	for name, values := range req.Form {
 		f,found := fields[name]
 		if !found{
 			continue
 		}
-		for _,value :=range values{
+		for _,value := range values {
 			err = populate(f,value)
 			if err != nil {
-				log.Error("failed to populate err:%v",err)
+				fmt.Errorf("failed to populate err:%v",err)
 				return
 			}
 		}
 	}
-	createprefix := "data[0][_id]"
-	if createid, exist := fields[createprefix];exist{
-		autoid,err := dao.GetDataTableAutoIncId()
-		if err != nil {
-			log.Error("failed allocate id for create :%v",err)
-			return err
-		}
-		populate(createid,autoid)
+
+	createPrefix := "data[0][" + TableIdInJson + "]"
+	if createId, exist := fields[createPrefix]; exist{
+		autoId := strconv.Itoa(GetNextId())
+		populate(createId,autoId)
 	}
 	return
 }
@@ -134,7 +140,7 @@ func populate(v reflect.Value, value string) error  {
 	case reflect.Int:
 		i,err := strconv.ParseInt(value,10,64)
 		if err != nil {
-			log.Error("failed to pasrse %v to int",value)
+			fmt.Errorf("failed to pasrse %v to int",value)
 			return err
 		}
 		if v.CanSet(){
@@ -146,7 +152,7 @@ func populate(v reflect.Value, value string) error  {
 	case reflect.Int64:
 		i,err := strconv.ParseInt(value,10,64)
 		if err != nil {
-			log.Error("failed to pasrse %v to int",value)
+			fmt.Errorf("failed to pasrse %v to int",value)
 			return err
 		}
 		if v.CanSet(){
@@ -158,7 +164,7 @@ func populate(v reflect.Value, value string) error  {
 	case reflect.Bool:
 		b,err := strconv.ParseBool(value)
 		if err != nil {
-			log.Error("failed to pasrse %v to int",value)
+			fmt.Errorf("failed to pasrse %v to int",value)
 			return err
 		}
 		if v.CanSet(){
@@ -166,10 +172,31 @@ func populate(v reflect.Value, value string) error  {
 		}else {
 			return errors.New("bool field can't be set")
 		}
+	case reflect.Float32:
+		f, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			fmt.Errorf("failed to parse %v to float32", value)
+			return err
+		}
+		if v.CanSet() {
+			v.SetFloat(f)
+		}else {
+			return  errors.New("float32 field can't be set")
+		}
+	case reflect.Float64:
+		f, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			fmt.Errorf("failed to parse %v to float64", value)
+			return err
+		}
+		if v.CanSet() {
+			v.SetFloat(f)
+		}else {
+			return  errors.New("float64 field can't be set")
+		}
 
 	default:
 		return fmt.Errorf("unsupported kind %s",v.Type())
 	}
 	return nil
-}*/
-
+}

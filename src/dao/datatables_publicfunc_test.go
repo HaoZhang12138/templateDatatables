@@ -4,6 +4,7 @@ import (
 	"testing"
 	"log"
 	"encoding/json"
+	"reflect"
 )
 
 func TestGetOneById(t *testing.T) {
@@ -13,7 +14,7 @@ func TestGetOneById(t *testing.T) {
 
 	err := Insert("userinfo", tmp)
 	if err != nil {
-		log.Println("failed to insert %v", err.Error())
+		t.Error("failed to insert %v", err.Error())
 		return
 	}
 	tt , err := GetDataStruct("userinfo")
@@ -28,7 +29,37 @@ func TestGetOneById(t *testing.T) {
 
 	err = Remove("userinfo",tmp.Id)
 	if err != nil {
-		log.Println("failed to remove %v", err.Error())
+		t.Error("failed to remove %v", err.Error())
 		return
 	}
+}
+
+
+func TestCommonLoadFromPostForm(t *testing.T) {
+	tmp, _ := GetDataStruct("userinfo")
+	flag := false
+	v := reflect.ValueOf(tmp).Elem()
+	for i := 0; i < v.NumField(); i++ {
+
+		name := v.Type().Field(i).Name
+		if name == "FileId" {
+			flag = true
+			break
+		}
+	}
+	log.Println(flag)
+
+	flag = false
+	tmp , _ = GetDataStruct("test")
+	v = reflect.ValueOf(tmp).Elem()
+	for i := 0; i < v.NumField(); i++ {
+
+		name := v.Type().Field(i).Name
+		if name == "FileId" {
+			flag = true
+			break
+		}
+	}
+	log.Println(flag)
+
 }
