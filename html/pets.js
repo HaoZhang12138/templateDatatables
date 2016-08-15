@@ -6,35 +6,21 @@ $(document).ready(function() {
     editor = new $.fn.dataTable.Editor( {
         ajax: "/view?tableName=" + tableName,
         table: "#"+ tableName,
-        idSrc: "id",
+        idSrc: "petid",
         fields: [{
-            label: "Id:",
-            name: "id",
+            label: "PetId:",
+            name: "petid",
             type: "hidden"
         },{
-            label: "User:",
-            name: "user"
-        }, {
-            label: "Pass:",
-            name: "pass"
-        }, {
             label: "Name:",
             name: "name"
         }, {
-            label: "Age:",
-            name: "age"
-        },{
-            label: "Tel:",
-            name: "tel"
-        },{
-            label: "Sex:",
-            name: "sex",
-            type: "select",
-            options: [
-                { label: "男", value: "男" },
-                { label: "女",  value: "女" }
-            ]
-        },{
+            label: "Category:",
+            name: "category"
+        }, {
+            label: "Color:",
+            name: "color"
+        }, {
             label: "Upload:",
             name: "fileid",
             type: "upload",
@@ -43,7 +29,6 @@ $(document).ready(function() {
             },
             clearText: "Clear",
             noImageText: 'No File'
-
         }
         ]
     } );
@@ -54,20 +39,17 @@ $(document).ready(function() {
             url: "/view?tableName=" + tableName
         },
         columns: [
-            { data: "id"   },
-            { data: "user"  },
-            { data: "pass"  },
+            { data: "petid"   },
             { data: "name"  },
-            { data: "age"   },
-            { data: "tel"   },
-            { data: "sex"   },
+            { data: "category"  },
+            { data: "color"  },
             { data: "fileid",
                 render: function ( file_id ) {
                     return file_id ?
                     ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img>':
                         null;
                 },
-                defaultContent: "No File",
+                defaultContent: "No File"
             }
         ],
         order: [ 1, 'asc' ],

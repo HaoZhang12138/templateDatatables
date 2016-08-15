@@ -38,27 +38,27 @@ func Insert(tableName string, data interface{})(err error) {
 	return
 }
 
-func Remove(tableName string, Id string)(err error){
+func Remove(tableName string, id string)(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Remove(bson.M{"_id": Id})
+		return nil, c.Remove(bson.M{"_id": id})
 	}
 	_, err = doCllection(tableName, f)
 	return
 }
 
-func Update(tableName string, Id string, data interface{})(err error) {
+func Update(tableName string, id string, data interface{})(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.UpdateId(Id, data)
+		return nil, c.UpdateId(id, data)
 	}
 	_, err = doCllection(tableName, f)
 	return
 }
 
-func GetFileId(tableName string, Id string)(ret string, err error){
+func GetFileId(tableName string, id string)(ret string, err error){
 
 	ans := make(map[string]string)
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{"_id": Id}).Select(bson.M{"fileid": 1}).One(&ans)
+		return nil, c.Find(bson.M{"_id": id}).Select(bson.M{"fileid": 1}).One(&ans)
 	}
 	_, err = doCllection(tableName, f)
 	if err != nil {
@@ -71,9 +71,9 @@ func GetFileId(tableName string, Id string)(ret string, err error){
 
 }
 
-func GetOneById(tableName string, Id string, data interface{})(err error){
+func GetOneById(tableName string, id string, data interface{})(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{"_id": Id}).One(data)
+		return nil, c.Find(bson.M{"_id": id}).One(data)
 	}
 	_, err = doCllection(tableName, f)
 
@@ -84,7 +84,7 @@ func GetOneById(tableName string, Id string, data interface{})(err error){
 	return
 }
 
-func CommonLoadFromPostForm(req *http.Request,id string,ptrdata interface{})(err error)  {
+func CommonLoadFromPostForm(req *http.Request,tableName string, id string,ptrdata interface{})(err error)  {
 	// parse form
 	if err = req.ParseForm();err !=nil{
 		fmt.Errorf("failed to parseform:%v",err)
@@ -119,8 +119,12 @@ func CommonLoadFromPostForm(req *http.Request,id string,ptrdata interface{})(err
 			}
 		}
 	}
-
-	createPrefix := "data[0][" + TableIdInJson + "]"
+	idInJson, err := GetTableIdInJson(tableName)
+	if err != nil {
+		log.Println("failed to GetTableIdInJson, err: ", err.Error())
+		return
+	}
+	createPrefix := "data[0][" + idInJson + "]"
 	if createId, exist := fields[createPrefix]; exist{
 		autoId := strconv.Itoa(GetNextId())
 		populate(createId,autoId)

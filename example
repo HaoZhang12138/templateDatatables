@@ -1,0 +1,193 @@
+//不上传文件的表
+（1）首先创建定义struct的go文件，文件名为 表名 + Datatables， 假设表名为 course,
+     则创建courseDatatables.go, 在里面定义自己的结构体，go文件名首字母大写就是结构体名, 
+     假设域有courseid, coursename, teachername, overview,  主键是courseid， 
+     那么结构体的结构是： 成员变量名是域名的首字母大写， json别名是域名全小写， 
+     bson别名和json相同，不同的是主键的bson别名固定为_id, 则定义的结构体如下所示：
+	type CourseDatatables struct {
+	Courseid string `json:"courseid" bson:"_id"`
+	Coursename string `json:"coursename" bson:"coursename"`
+	Teachername string `json:"teachername" bson:"teachername"`
+	Overview string        `json:"overview" bson:"overview"`
+        }
+
+     定义属于结构体的GetId()方法，通用结构如下： 
+     func (this *结构体名)GetId()(string){
+	     return  this.主键
+     }
+     将结构体名和主键填入， 则为
+     func (this *CourseDatatables)GetId()(string){
+	     return  this.Courseid
+     }
+
+（2）修改datatables_getDataStruct.go文件
+	1）在GetDataStruct函数加入关于自定义表的case，通用结构为：
+	case "表名":
+		ret = new(表对应的struct)
+	例如：
+	case "course":
+		ret = new(CourseDatatables)
+
+	2）同样在GetDataStructSilce加入case， 类似上面， 例如：
+	case "course":
+		ret = new([]CourseDatatables)
+
+	3）最后在GetTableIdInJson加入case识别主键， 通天结构为：
+	case "表名":
+		idInJson = "主键的json别名"
+	例如：
+	case "course":
+		idInJson = "courseid"
+
+（3）创建js文件，以表名作为js文件名创建js文件。
+     例子表名为course，所以创建course.js。
+     基于tables.js文件要修改的地方有：
+     1）editor中的idSrc属性， 修改为主键的json别名， 例如， idSrc: "courseid"
+     2）修改editor中的fields属性， 按照自定义结构体中的成员变量进行修改
+  	fields属性值结构如下：
+	fields: [{
+            label: , // 在web前端显示的标签
+            name: "courseid", // 对应结构体的json别名
+            type: "hidden"    // 文本类型
+        },...
+        ]
+	例如：
+	 fields: [{
+            label: "CourseID:",
+            name: "courseid",
+            type: "hidden"
+        },{
+            label: "CourseName:",
+            name: "coursename"
+        }, {
+            label: "TeacherName:",
+            name: "teachername"
+        }, {
+            label: "Overview:",
+            name: "overview"
+        }
+        ]
+
+     3）修改table中的colums属性，同样按照自定义结构体中的成员变量进行修改 
+	colums属性的结构如下：
+ 	columns: [
+            { data: //json别名  },
+	    ...
+        ],
+	例如：
+  	columns: [
+            { data: "courseid"   },
+            { data: "coursename"  },
+            { data: "teachername"  },
+            { data: "overview"  }
+        ]
+      
+（4）创建html文件，以表名作为html文件名创建html文件。
+     例子表名为course，所以创建course.html,
+     基于view.html文件要修改的地方有
+     1）引入前面定义的js文件
+     2) <table>标签里把id属性值设为表名
+	例如：
+	<table id="course" class="display" width="100%" cellspacing="0">
+     3）根据自定义结构体修改<table>里定义的内容
+	例如
+	<table id="course" class="display" width="100%" cellspacing="0">
+	    <thead>
+	    <tr>
+		<th>CourseId</th>
+		<th>CourseName</th>
+		<th>TeacherName</th>
+		<th>Overview</th>
+	    </tr>
+	    </thead>
+	    <tfoot>
+	    <tr>
+		<th>CourseId</th>
+		<th>CourseName</th>
+		<th>TeacherName</th>
+		<th>Overview</th>
+	    </tr>
+	    </tfoot>
+	</table>
+	*要注意的是table标签里的内容要与js文件table中的columns属性一一对应。
+
+//上传文件的表
+步骤和不上传文件的表类似，不同之处有
+（1）在自定义的结构体里加上成员变量 FileId string `json:"fileid" json:"fileid"` 
+     例如： 
+ 	type PetsDatatables struct {
+	Petid string `json:"petid" bson:"_id"`
+	Name string `json:"name" bson:"name"`
+	Category string `json:"category" bson:"category"`
+	Color string `json:"color" bson:"color"`
+	FileId string `json:"fileid" json:"fileid"`
+}   
+（2）在自定义的js文件的editor的fields属性中， 加入
+	{
+            label: "Upload:", // label可更改
+            name: "fileid",
+            type: "upload",
+            display: function ( file_id ) {
+                return ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img> ';
+            },
+            clearText: "Clear",
+            noImageText: 'No File'
+        } 
+	对应自定义结构体的FileId成员变量
+	例如：
+	fields: [{
+            label: "PetId:",
+            name: "petid",
+            type: "hidden"
+        },{
+            label: "Name:",
+            name: "name"
+        }, {
+            label: "Category:",
+            name: "category"
+        }, {
+            label: "Color:",
+            name: "color"
+        }, {
+            label: "Upload:",
+            name: "fileid",
+            type: "upload",
+            display: function ( file_id ) {
+                return ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img> ';
+            },
+            clearText: "Clear",
+            noImageText: 'No File'
+        }
+        ]
+	
+	同样在自定义的js文件的table的columns属性中，要加入
+	{ data: "fileid",
+                render: function ( file_id ) {
+                    return file_id ?
+                    ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img>':
+                        null;
+                },
+                defaultContent: "No File",
+        }
+	来对应自定义结构体的FileId成员变量
+	例如：
+	columns: [
+            { data: "petid"   },
+            { data: "name"  },
+            { data: "category"  },
+            { data: "color"  },
+            { data: "fileid",
+                render: function ( file_id ) {
+                    return file_id ?
+                    ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img>':
+                        null;
+                },
+                defaultContent: "No File"
+            }
+        ]
+        
+// 一些配置信息
+（1）关于数据库连接的配置在newConn.go文件
+（2）关于上传文件的配置在uploadfile.go
+
+

@@ -24,15 +24,12 @@ type uploadfile_tmp struct {
 	Files *simplejson.Json `json:"files"`
 }
 
-const UPLOAD_DIR = "/home/zh/GoPro/templateDatatables/html/uploads"
-const PreWebPath = "/uploads/"
 const URLTableName = "tableName"
 //var mutexlock sync.Mutex
 
-
 func ViewHandle(w http.ResponseWriter, r *http.Request){
 
-	var ReturnData Datatablesdata
+	var returndata Datatablesdata
 	var res []dao.EditDataTables
 	var err error
 	var flag int
@@ -42,19 +39,19 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 		if r.ContentLength != 0 {
 			action := r.FormValue("action")
 			if action == "upload" {
-				ReturnData.Upload.Id, err = Getpostfile(w, r,tableName)
+				returndata.Upload.Id, err = Getpostfile(r,tableName)
 				if err != nil {
 					log.Println("failed to action upload in func ViewHandle, err: ", err.Error())
 					return
 				}
 				flag = 0
 			} else {
-				id, _ := GetDataTableId(r)
+				id, _ := GetDataTableId(r, tableName)
 				if action == "create"  || action == "edit"{
 					if action == "create" {
-						res, _ = Createdatatablesline(w, r, id, tableName)
+						res, _ = Createdatatablesline(r, tableName, id)
 					}else {
-						res, _ = Editdatatablesline(w, r, id, tableName)
+						res, _ = Editdatatablesline(r, tableName, id)
 					}
 					dataslice := make([]interface{}, 0)
 					for i := range res {
@@ -70,11 +67,11 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 						}
 						dataslice = append(dataslice, data)
 					}
-					ReturnData.Data = dataslice
+					returndata.Data = dataslice
 					flag = 1
 
 				}else if action == "remove"{
-					Deldatatablesline(w, r, id, tableName)
+					Deldatatablesline(r, tableName, id)
 					flag = -1
 				}
 
@@ -82,20 +79,20 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 		}
 	} else if r.Method == "GET" {
 
-		ReturnData.Data, err = dao.GetDataStructSilce(tableName)
+		returndata.Data, err = dao.GetDataStructSilce(tableName)
 		if err != nil {
 			log.Println("falied to get datastruct silce, err: ", err.Error())
 			return
 		}
-		err = dao.GetAll(tableName, ReturnData.Data)
+		err = dao.GetAll(tableName, returndata.Data)
 		if err != nil {
 			log.Println("failed to get all data, err: ",err.Error())
 			return
 		}
 
-		if reflect.ValueOf(ReturnData.Data).Elem().Len() == 0 {
+		if reflect.ValueOf(returndata.Data).Elem().Len() == 0 {
 			fmt.Println("ReturnData.Data is empty")
-			ReturnData.Data = make([]interface{}, 0)
+			returndata.Data = make([]interface{}, 0)
 		}
 		flag = 0
 	}
@@ -106,16 +103,15 @@ func ViewHandle(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	if JudgeDataStructFileId(useToJudge) {
-		HandleFilesData(tableName, &ReturnData, res, flag)
+		HandleFilesData(tableName, &returndata, res, flag)
 	}
 
-	ReturnDataJson, err := json.Marshal(ReturnData)
+	response, err := json.Marshal(returndata)
 	if err != nil {
 		log.Println("failed to marshal to json, err: ", err.Error())
 		return
 	}
-	w.Write(ReturnDataJson)
-
+	w.Write(response)
 }
 
 

@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetOneById(t *testing.T) {
-	tmp := UserInfoDatatables{}
+	tmp := UserinfoDatatables{}
 	tmp.Id = "123456"
 	tmp.Name = "test"
 
@@ -32,34 +32,4 @@ func TestGetOneById(t *testing.T) {
 		t.Error("failed to remove %v", err.Error())
 		return
 	}
-}
-
-
-func TestCommonLoadFromPostForm(t *testing.T) {
-	tmp, _ := GetDataStruct("userinfo")
-	flag := false
-	v := reflect.ValueOf(tmp).Elem()
-	for i := 0; i < v.NumField(); i++ {
-
-		name := v.Type().Field(i).Name
-		if name == "FileId" {
-			flag = true
-			break
-		}
-	}
-	log.Println(flag)
-
-	flag = false
-	tmp , _ = GetDataStruct("test")
-	v = reflect.ValueOf(tmp).Elem()
-	for i := 0; i < v.NumField(); i++ {
-
-		name := v.Type().Field(i).Name
-		if name == "FileId" {
-			flag = true
-			break
-		}
-	}
-	log.Println(flag)
-
 }

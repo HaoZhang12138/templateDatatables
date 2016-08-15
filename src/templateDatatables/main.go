@@ -5,12 +5,13 @@ import (
 	"log"
 	"httpfunction"
 	"os"
+	"dao"
 )
-const UPLOAD_DIR = "/home/zh/GoPro/templateDatatables/html/uploads"
+
 func init() {
-	_, err := os.Stat(UPLOAD_DIR)
+	_, err := os.Stat(dao.UPLOAD_DIR)
 	if err != nil {
-		err = os.Mkdir(UPLOAD_DIR, os.ModePerm)
+		err = os.Mkdir(dao.UPLOAD_DIR, os.ModePerm)
 		if err != nil {
 			log.Println("failed to create dir")
 		}

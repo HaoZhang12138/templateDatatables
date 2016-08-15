@@ -13,6 +13,8 @@ type Uploadfile struct {
 	Systempath string  `json:"systempath"`
 }
 
+const UPLOAD_DIR = "/home/zh/GoPro/templateDatatables/html/uploads"
+const PreWebPath = "/uploads/"
 
 func (this *Uploadfile) GetOneUploadfile(uploadtablename string)(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
@@ -22,7 +24,6 @@ func (this *Uploadfile) GetOneUploadfile(uploadtablename string)(err error) {
 	return
 }
 
-
 func (this *Uploadfile) Insert(uploadtablename string)(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Insert(this)
@@ -31,16 +32,8 @@ func (this *Uploadfile) Insert(uploadtablename string)(err error) {
 	return
 }
 
-
 func (this *Uploadfile) Remove(uploadtablename string)(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
-
-		/*err := os.Remove(this.Systempath)
-		if err != nil {
-			log.Println("failed to delete file")
-			return nil,err
-		}*/ // delete the local file
-
 		return nil, c.Remove(bson.M{"_id": this.Id})
 	}
 	_, err = doCllection(uploadtablename, f)
@@ -52,7 +45,6 @@ func GetAllUploadfile(uploadtablename string) (ret []Uploadfile, err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{}).All(&result)
 	}
-
 	_, err = doCllection(uploadtablename, f)
 	if err != nil {
 		return
