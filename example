@@ -134,31 +134,6 @@
             noImageText: 'No File'
         } 
 	对应自定义结构体的FileId成员变量
-	例如：
-	fields: [{
-            label: "PetId:",
-            name: "petid",
-            type: "hidden"
-        },{
-            label: "Name:",
-            name: "name"
-        }, {
-            label: "Category:",
-            name: "category"
-        }, {
-            label: "Color:",
-            name: "color"
-        }, {
-            label: "Upload:",
-            name: "fileid",
-            type: "upload",
-            display: function ( file_id ) {
-                return ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img> ';
-            },
-            clearText: "Clear",
-            noImageText: 'No File'
-        }
-        ]
 	
 	同样在自定义的js文件的table的columns属性中，要加入
 	{ data: "fileid",
@@ -170,21 +145,7 @@
                 defaultContent: "No File",
         }
 	来对应自定义结构体的FileId成员变量
-	例如：
-	columns: [
-            { data: "petid"   },
-            { data: "name"  },
-            { data: "category"  },
-            { data: "color"  },
-            { data: "fileid",
-                render: function ( file_id ) {
-                    return file_id ?
-                    ' <img src="' + table.file( 'files', file_id ).webpath + '"> </img>':
-                        null;
-                },
-                defaultContent: "No File"
-            }
-        ]
+	
         
 // 一些配置信息
 （1）关于数据库连接的配置在newConn.go文件
