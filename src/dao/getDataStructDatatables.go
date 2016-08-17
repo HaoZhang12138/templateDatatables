@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func GetDataStruct(tableName string) (ret EditDataTables,err error) {
+func GetDataStruct(tableName string) (ret DataTablesDao,err error) {
 	switch tableName {
 	case "userinfo":
 		ret = new(UserinfoDatatables)
@@ -30,7 +30,7 @@ func GetDataStructSilce(tableName string) (ret interface{},err error) {
 		ret = new([]PetsDatatables)
 	default:
 		err = errors.New("tablename is not found")
-		log.Println("failed to match tablename in func GetDataStruct, err: ", err.Error())
+		log.Println("failed to match tablename in func GetDataStructSilce, err: ", err.Error())
 	}
 	return
 }
@@ -45,7 +45,7 @@ func GetTableIdInJson(tableName string)(idInJson string, err error) {
 		idInJson = "petid"
 	default:
 		err = errors.New("tablename is not found")
-		log.Println("failed to match tablename in func GetDataStruct, err: ", err.Error())
+		log.Println("failed to match tablename in func GetTableIdInJson, err: ", err.Error())
 	}
 	return
 }

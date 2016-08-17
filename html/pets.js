@@ -35,8 +35,12 @@ $(document).ready(function() {
 
     table =  $("#"+ tableName).DataTable( {
         dom: "Bfrtip",
+        pageLength: 8,
         ajax: {
-            url: "/view?tableName=" + tableName
+            url: "/view?tableName=" + tableName,
+            error: function () {
+                alert("error")
+            }
         },
         columns: [
             { data: "petid"   },

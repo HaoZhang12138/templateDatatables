@@ -7,9 +7,7 @@ type CourseDatatables struct {
 	Overview string        `json:"overview" bson:"overview"`
 }
 
-
-func (this *CourseDatatables)GetId()(string){
+func (this *CourseDatatables)GetId()(interface{}){
 	return  this.Courseid
 }
-
 

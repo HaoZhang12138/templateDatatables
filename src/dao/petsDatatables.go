@@ -8,6 +8,6 @@ type PetsDatatables struct {
 	FileId string `json:"fileid" json:"fileid"`
 }
 
-func (this *PetsDatatables)GetId()(string){
+func (this *PetsDatatables)GetId()(interface{}){
 	return  this.Petid
 }

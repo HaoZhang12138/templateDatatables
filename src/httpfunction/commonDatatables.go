@@ -14,6 +14,127 @@ import (
 	"fmt"
 )
 
+func CommonLoadFromPostForm(req *http.Request,tableName string, id string,ptrdata interface{})(err error)  {
+	// parse form
+	if err = req.ParseForm();err !=nil{
+		log.Println("failed to parseform, err: ",err.Error())
+		return
+	}
+
+	v := reflect.ValueOf(ptrdata).Elem()
+	fields := make(map[string]reflect.Value)
+	for i := 0; i < v.NumField(); i++ {
+		prefix := "data["+id+"]["
+		fieldInfo := v.Type().Field(i)
+		tag := fieldInfo.Tag
+		jsonName := tag.Get("json")
+		if jsonName == ""{
+			jsonName = strings.ToLower(fieldInfo.Name)
+		}
+		prefix = prefix+jsonName+"]"
+		fields[prefix] = v.Field(i)
+	}
+
+	// take from form
+	for name, values := range req.Form {
+		f,found := fields[name]
+		if !found{
+			continue
+		}
+		for _,value := range values {
+			err = populate(f,value)
+			if err != nil {
+				log.Println("failed to populate, err: ",err.Error())
+				return
+			}
+		}
+	}
+	idInJson, err := dao.GetTableIdInJson(tableName)
+	if err != nil {
+		log.Println("failed to GetTableIdInJson, err: ", err.Error())
+		return
+	}
+	createPrefix := "data[0][" + idInJson + "]"
+	if createId, exist := fields[createPrefix]; exist{
+		autoId := strconv.Itoa(dao.GetNextId())
+		populate(createId,autoId)
+	}
+	return
+}
+
+func populate(v reflect.Value, value string) error  {
+	switch v.Kind() {
+	case reflect.String:
+		if v.CanSet(){
+			v.SetString(value)
+		}else {
+			return errors.New("string field can't be set")
+		}
+
+	case reflect.Int:
+		i,err := strconv.ParseInt(value,10,64)
+		if err != nil {
+			log.Println("failed to pasrse to int, err: ",err.Error())
+			return err
+		}
+		if v.CanSet(){
+			v.SetInt(i)
+		}else {
+			return errors.New("int field can't be set")
+		}
+
+	case reflect.Int64:
+		i,err := strconv.ParseInt(value,10,64)
+		if err != nil {
+			log.Println("failed to pasrse to int, err :",err.Error())
+			return err
+		}
+		if v.CanSet(){
+			v.SetInt(i)
+		}else {
+			return errors.New("int64 field can't be set")
+		}
+
+	case reflect.Bool:
+		b,err := strconv.ParseBool(value)
+		if err != nil {
+			log.Println("failed to pasrse to bool, err: ",err.Error())
+			return err
+		}
+		if v.CanSet(){
+			v.SetBool(b)
+		}else {
+			return errors.New("bool field can't be set")
+		}
+	case reflect.Float32:
+		f, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			log.Println("failed to parse to float32, err: ", err.Error())
+			return err
+		}
+		if v.CanSet() {
+			v.SetFloat(f)
+		}else {
+			return  errors.New("float32 field can't be set")
+		}
+	case reflect.Float64:
+		f, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			log.Println("failed to parse to float64, err: ", err.Error())
+			return err
+		}
+		if v.CanSet() {
+			v.SetFloat(f)
+		}else {
+			return  errors.New("float64 field can't be set")
+		}
+
+	default:
+		return fmt.Errorf("unsupported kind %s",v.Type())
+	}
+	return nil
+}
+
 func GetUploadTableName(tableName string) string {
 	return  tableName + "_uploadfile"
 }
@@ -96,18 +217,20 @@ func Getpostfile(r *http.Request, tableName string) (uploadid string, err error)
 	return
 }
 
-func Createdatatablesline(r *http.Request, tableName string, id []string) (res []dao.EditDataTables, err error) {
+func Createdatatablesline(r *http.Request, tableName string, id []string) (res []dao.DataTablesDao, err error) {
 
-	//mutexlock.Lock()
-	//defer mutexlock.Unlock()
-	res = make([]dao.EditDataTables, len(id))
+	res = make([]dao.DataTablesDao, len(id))
 	for i := range id {
 		res[i], err = dao.GetDataStruct(tableName)
 		if err != nil {
 			log.Println("failed to GetDataStruct in func Createdatatablesline, err: ", err.Error())
 			return
 		}
-		dao.CommonLoadFromPostForm(r, tableName, id[i], res[i])
+		err = CommonLoadFromPostForm(r, tableName, id[i], res[i])
+		if err != nil {
+			log.Println("failed to load data from post form, err: ", err.Error())
+			return
+		}
 		err = dao.Insert(tableName, res[i])
 		if err != nil {
 			log.Println("failed to create datatables row, err: ", err.Error())
@@ -117,16 +240,16 @@ func Createdatatablesline(r *http.Request, tableName string, id []string) (res [
 	return
 }
 
-func Editdatatablesline_HandleFile (r *http.Request, tableName string, id string, res dao.EditDataTables) (err error){
+func Editdatatablesline_HandleFile (r *http.Request, tableName string, id string, res dao.DataTablesDao) (err error){
 
 	var fileTmp dao.Uploadfile
 	fileTmp.Id, err = dao.GetFileId(tableName, res.GetId())
-	newfileid := r.FormValue("data[" + id + "][fileid]")
+	newFileId := r.FormValue("data[" + id + "][fileid]")
 	if err != nil {
 		log.Println("failed to get fileId in func Editdatatablesline, err: ", err.Error())
 		return
 	}
-	if fileTmp.Id != "" && fileTmp.Id != newfileid {
+	if fileTmp.Id != "" && fileTmp.Id != newFileId {
 		err = fileTmp.Remove(GetUploadTableName(tableName))
 		if err != nil {
 			log.Println("failed to remove uploadfile in func deldatatablesline, err: ", err.Error())
@@ -136,18 +259,20 @@ func Editdatatablesline_HandleFile (r *http.Request, tableName string, id string
 	return
 }
 
-func Editdatatablesline(r *http.Request, tableName string, id []string) (res []dao.EditDataTables,err error) {
+func Editdatatablesline(r *http.Request, tableName string, id []string) (res []dao.DataTablesDao,err error) {
 
-	//mutexlock.Lock()
-	//defer mutexlock.Unlock()
-	res = make([]dao.EditDataTables, len(id))
+	res = make([]dao.DataTablesDao, len(id))
 	for i := range id {
 		res[i], err = dao.GetDataStruct(tableName)
 		if err != nil {
 			log.Println("failed to GetDataStruct in func Createdatatablesline, err: ", err.Error())
 			return
 		}
-		dao.CommonLoadFromPostForm(r, tableName, id[i], res[i])
+		err = CommonLoadFromPostForm(r, tableName, id[i], res[i])
+		if err != nil {
+			log.Println("failed to load data from post form, err: ", err.Error())
+			return
+		}
 		if JudgeDataStructFileId(res[i]) {
 			err = Editdatatablesline_HandleFile(r, tableName, id[i], res[i])
 			if err != nil {
@@ -164,7 +289,7 @@ func Editdatatablesline(r *http.Request, tableName string, id []string) (res []d
 	return
 }
 
-func Deldatatablesline_HandleFile (tableName string, res dao.EditDataTables) (err error){
+func Deldatatablesline_HandleFile (tableName string, res dao.DataTablesDao) (err error){
 
 	var fileTmp dao.Uploadfile
 	fileTmp.Id, err = dao.GetFileId(tableName, res.GetId())
@@ -173,7 +298,6 @@ func Deldatatablesline_HandleFile (tableName string, res dao.EditDataTables) (er
 		return
 	}
 	if fileTmp.Id != ""{
-
 		err = fileTmp.Remove(GetUploadTableName(tableName))
 		if err != nil {
 			log.Println("failed to remove uploadfile in func deldatatablesline, err: ", err.Error())
@@ -185,16 +309,18 @@ func Deldatatablesline_HandleFile (tableName string, res dao.EditDataTables) (er
 
 func Deldatatablesline(r *http.Request, tableName string, id []string) (err error) {
 
-	//mutexlock.Lock()
-	//defer mutexlock.Unlock()
-	res := make([]dao.EditDataTables,len(id))
+	res := make([]dao.DataTablesDao,len(id))
 	for i := range id {
 		res[i], err = dao.GetDataStruct(tableName)
 		if err != nil {
 			log.Println("failed to GetDataStruct in func Createdatatablesline, err: ", err.Error())
 			return
 		}
-		dao.CommonLoadFromPostForm(r, tableName, id[i], res[i])
+		err = CommonLoadFromPostForm(r, tableName, id[i], res[i])
+		if err != nil {
+			log.Println("failed to load data from post form, err: ", err.Error())
+			return
+		}
 		if JudgeDataStructFileId(res[i]) {
 			err = Deldatatablesline_HandleFile(tableName, res[i])
 			if err != nil {
@@ -211,38 +337,37 @@ func Deldatatablesline(r *http.Request, tableName string, id []string) (err erro
 	return
 }
 
-//flag is -1 to handle remove, flag is 0 to handle GET and upload, flag is 1 to handle edit and create
-func HandleFilesData(tableName string, returndata *Datatablesdata, res []dao.EditDataTables, flag int) (err error) {
-	fmt.Println("using func HandleFilesData")
-	if flag == -1 {
+func HandleFilesData(tableName string, returndata *Datatablesdata, res []dao.DataTablesDao, flag int) (err error) {
+
+	if flag == FILES_NOT_NEEDED{
 		return
-	}else if flag == 0 {
+	}else if flag == FILES_NEEDED_ALL {
 		returndata.Files.Files = simplejson.New()
-		filearray := make([]dao.Uploadfile, 0)
-		filearray, err = dao.GetAllUploadfile(GetUploadTableName(tableName))
+		fileArray := make([]dao.Uploadfile, 0)
+		fileArray, err = dao.GetAllUploadfile(GetUploadTableName(tableName))
 		if err != nil {
 			log.Println("failed to GetAllUploadfile in func ViewHandle, err: ", err.Error())
 			return
 		}
-		for i := range filearray{
-			returndata.Files.Files.Set(filearray[i].Id, filearray[i])
+		for i := range fileArray{
+			returndata.Files.Files.Set(fileArray[i].Id, fileArray[i])
 		}
-	}else if flag == 1 {
-		var fileone dao.Uploadfile
+	}else if flag == FILES_NEEDED_ONE {
+		var fileOne dao.Uploadfile
 		returndata.Files.Files = simplejson.New()
 		for i := range res {
-			fileone.Id, err = dao.GetFileId(tableName, res[i].GetId())
+			fileOne.Id, err = dao.GetFileId(tableName, res[i].GetId())
 			if err != nil {
 				log.Println("failed to get fileId in func Deldatatablesline, err: ", err.Error())
 				return
 			}
-			if fileone.Id != "" {
-				err = fileone.GetOneUploadfile(GetUploadTableName(tableName))
+			if fileOne.Id != "" {
+				err = fileOne.GetOneUploadfile(GetUploadTableName(tableName))
 				if err != nil {
 					log.Println("failed to get one uploadfile, err: ", err.Error())
 					return
 				}
-				returndata.Files.Files.Set(fileone.Id, fileone)
+				returndata.Files.Files.Set(fileOne.Id, fileOne)
 			}
 		}
 	}else {
@@ -251,4 +376,3 @@ func HandleFilesData(tableName string, returndata *Datatablesdata, res []dao.Edi
 	}
 	return
 }
-

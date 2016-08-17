@@ -11,6 +11,7 @@ type UserinfoDatatables struct {
 	FileId string `json:"fileid"`
 }
 
-func (this *UserinfoDatatables)GetId()(string){
+func (this *UserinfoDatatables)GetId()(interface{}){
 	return  this.Id
 }
+

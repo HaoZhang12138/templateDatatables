@@ -26,6 +26,7 @@ $(document).ready(function() {
 
     table =  $("#"+ tableName).DataTable( {
         dom: "Bfrtip",
+        pageLength: 8,
         ajax: {
             url: "/view?tableName=" + tableName
         },
