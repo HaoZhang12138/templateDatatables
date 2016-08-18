@@ -67,6 +67,10 @@ func Edit_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) 
 //默认的删除方法
 func Remove_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (err error) {
 	tableName, id ,err := Get_tableName_id(r)
+	if err != nil {
+		log.Println("failed to get excute Get_tableName_id, err: ", err.Error())
+		return
+	}
 	resp.Data, err = dao.GetDataStructSilce(tableName)
 	if err != nil {
 		log.Println("falied to get datastruct silce, err: ", err.Error())
@@ -86,7 +90,6 @@ func Remove_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata
 		log.Println("failed to remove line, err: ",err.Error())
 		return
 	}
-
 	return
 }
 
