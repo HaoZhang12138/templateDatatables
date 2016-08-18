@@ -6,7 +6,7 @@ import (
 	"dao"
 	"reflect"
 )
-
+//默认的上传方法
 func Upload_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata)(err error) {
 	tableName := r.URL.Query().Get(URLTableName)
 	resp.Upload.Id, err = Getpostfile(r,tableName)
@@ -22,8 +22,9 @@ func Upload_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata
 	return
 }
 
+//默认的创建方法
 func Create_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (err error) {
-	tableName, id := Common(r)
+	tableName, id, err := Get_tableName_id(r)
 	res, err := Createdatatablesline(r, tableName, id)
 	if err != nil {
 		log.Println("failed to create a new line, err: ", err.Error())
@@ -42,8 +43,9 @@ func Create_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata
 	return
 }
 
+//默认的编辑方法
 func Edit_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (err error)  {
-	tableName, id := Common(r)
+	tableName, id ,err := Get_tableName_id(r)
 	res, err := Editdatatablesline(r, tableName, id)
 	if err != nil {
 		log.Println("failed to edit line, err: ", err.Error())
@@ -62,8 +64,9 @@ func Edit_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) 
 	return
 }
 
+//默认的删除方法
 func Remove_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (err error) {
-	tableName, id := Common(r)
+	tableName, id ,err := Get_tableName_id(r)
 	err = Deldatatablesline(r, tableName, id)
 	if err != nil {
 		log.Println("failed to remove line, err: ",err.Error())
@@ -72,6 +75,7 @@ func Remove_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata
 	return
 }
 
+//默认的GET方法
 func GET_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (err error){
 	tableName := r.URL.Query().Get(URLTableName)
 	resp.Data, err = dao.GetDataStructSilce(tableName)
@@ -96,13 +100,19 @@ func GET_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (
 	return
 }
 
-func Common(r *http.Request)(tableName string, id []string){
+//用于获取请求的表名和主键
+func Get_tableName_id(r *http.Request)(tableName string, id []string, err error){
 	tableName = r.URL.Query().Get(URLTableName)
-	id, _ = GetDataTableId(r, tableName)
+	id, err = GetDataTableId(r, tableName)
+	if err != nil {
+		log.Println("failed to get post data Id, err: ", err.Error())
+		return
+	}
 	return
 }
 
-func Common_create_edit(tableName string, res []dao.DataTablesDao, rdata *Datatablesdata)(err error) {
+//用于创建和编辑之后，加载要回应的数据
+func Common_create_edit(tableName string, res []dao.DataTablesDao, resp *Datatablesdata)(err error) {
 	dataslice := make([]interface{}, 0)
 	for i := range res {
 		data, err := dao.GetDataStruct(tableName)
@@ -117,18 +127,19 @@ func Common_create_edit(tableName string, res []dao.DataTablesDao, rdata *Datata
 		}
 		dataslice = append(dataslice, data)
 	}
-	rdata.Data = dataslice
+	resp.Data = dataslice
 	return
 }
 
-func Common_HandleFile(tableName string, res []dao.DataTablesDao, flag int, rdata *Datatablesdata)(err error){
+//用于除删除外的所有请求之后， 判断是否要加载文件信息，是则在函数内加载
+func Common_HandleFile(tableName string, res []dao.DataTablesDao, flag int, resp *Datatablesdata)(err error){
 	useToJudge, err := dao.GetDataStruct(tableName)
 	if err != nil {
 		log.Println("failed to get data struct, err: ", err.Error())
 		return
 	}
 	if JudgeDataStructFileId(useToJudge) {
-		err = HandleFilesData(tableName, rdata, res, flag)
+		err = HandleFilesData(tableName, resp, res, flag)
 		if err != nil {
 			log.Println("failed to HandleFilesData, err: ", err.Error())
 			return

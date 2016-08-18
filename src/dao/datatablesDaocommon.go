@@ -6,6 +6,8 @@ import (
 	"log"
 )
 
+//公共的处理数据库操作的函数
+
 func GetAll(tableName string, data interface{})(err error){
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{}).All(data)

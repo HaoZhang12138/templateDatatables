@@ -16,6 +16,7 @@ type Uploadfile struct {
 const UPLOAD_DIR = "/home/zh/GoPro/templateDatatables/html/uploads"
 const PreWebPath = "/uploads/"
 
+//对于上传文件的信息的数据库操作
 func (this *Uploadfile) GetOneUploadfile(uploadtablename string)(err error) {
 	f := func(c *mgo.Collection) (interface{}, error) {
 		return nil, c.Find(bson.M{"_id": this.Id}).One(this)

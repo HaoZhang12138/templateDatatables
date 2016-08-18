@@ -14,6 +14,7 @@ import (
 	"fmt"
 )
 
+//公共的从postform读取数据的方法
 func CommonLoadFromPostForm(req *http.Request,tableName string, id string,ptrdata interface{})(err error)  {
 	// parse form
 	if err = req.ParseForm();err !=nil{
@@ -62,6 +63,7 @@ func CommonLoadFromPostForm(req *http.Request,tableName string, id string,ptrdat
 	return
 }
 
+//根据反射的类型设置值
 func populate(v reflect.Value, value string) error  {
 	switch v.Kind() {
 	case reflect.String:
@@ -135,10 +137,12 @@ func populate(v reflect.Value, value string) error  {
 	return nil
 }
 
+//得到存放上传文件信息的数据库表的名字
 func GetUploadTableName(tableName string) string {
 	return  tableName + "_uploadfile"
 }
 
+//判断struct有无上传文件字段
 func JudgeDataStructFileId(data interface{}) (flag bool) {
 	flag = false
 	v := reflect.ValueOf(data).Elem()
@@ -152,6 +156,7 @@ func JudgeDataStructFileId(data interface{}) (flag bool) {
 	return
 }
 
+//从postform中得到数据的主键字段值
 func GetDataTableId(r *http.Request, tableName string)(id []string, err error ){
 
 	action := r.FormValue("action")
@@ -180,6 +185,7 @@ func GetDataTableId(r *http.Request, tableName string)(id []string, err error ){
 	return
 }
 
+//接受上传的文件，存在本地，如对上传文件的存放有特殊要求，请改写
 func Getpostfile(r *http.Request, tableName string) (uploadid string, err error){
 	var fileTmp dao.Uploadfile
 	file,handler, err := r.FormFile("upload")
@@ -217,6 +223,7 @@ func Getpostfile(r *http.Request, tableName string) (uploadid string, err error)
 	return
 }
 
+//处理创建请求
 func Createdatatablesline(r *http.Request, tableName string, id []string) (res []dao.DataTablesDao, err error) {
 
 	res = make([]dao.DataTablesDao, len(id))
@@ -240,6 +247,7 @@ func Createdatatablesline(r *http.Request, tableName string, id []string) (res [
 	return
 }
 
+//如有文件，处理编辑时对文件的请求
 func Editdatatablesline_HandleFile (r *http.Request, tableName string, id string, res dao.DataTablesDao) (err error){
 
 	var fileTmp dao.Uploadfile
@@ -259,6 +267,7 @@ func Editdatatablesline_HandleFile (r *http.Request, tableName string, id string
 	return
 }
 
+//处理编辑请求
 func Editdatatablesline(r *http.Request, tableName string, id []string) (res []dao.DataTablesDao,err error) {
 
 	res = make([]dao.DataTablesDao, len(id))
@@ -289,6 +298,7 @@ func Editdatatablesline(r *http.Request, tableName string, id []string) (res []d
 	return
 }
 
+//如有文件，删除时对其进行处理
 func Deldatatablesline_HandleFile (tableName string, res dao.DataTablesDao) (err error){
 
 	var fileTmp dao.Uploadfile
@@ -307,6 +317,7 @@ func Deldatatablesline_HandleFile (tableName string, res dao.DataTablesDao) (err
 	return
 }
 
+//处理删除请求
 func Deldatatablesline(r *http.Request, tableName string, id []string) (err error) {
 
 	res := make([]dao.DataTablesDao,len(id))
@@ -337,6 +348,7 @@ func Deldatatablesline(r *http.Request, tableName string, id []string) (err erro
 	return
 }
 
+//回复给前端的数据中， 如有文件， 加上相应的文件信息
 func HandleFilesData(tableName string, returndata *Datatablesdata, res []dao.DataTablesDao, flag int) (err error) {
 
 	if flag == FILES_NOT_NEEDED{

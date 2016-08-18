@@ -2,16 +2,33 @@ package httpfunction
 
 import (
 	"net/http"
-	"errors"
-	"log"
+	"github.com/bitly/go-simplejson"
 )
+
+//url中用于传表名的字段
+const URLTableName = "tableName"
 
 const (
 	FILES_NOT_NEEDED = iota
 	FILES_NEEDED_ONE
 	FILES_NEEDED_ALL
 )
+//http回复的数据
+type Datatablesdata struct {
+	Data interface{}  `json:"data"`
+	Files uploadfile_tmp `json:"files,omitempty"`
+	Upload uploadid `json:"upload,omitempty"`
+}
 
+type uploadid struct {
+	Id string `json:"id"`
+}
+
+type uploadfile_tmp struct {
+	Files *simplejson.Json `json:"files"`
+}
+
+//handler接口
 type DataTableHandler interface {
 	Upload(w http.ResponseWriter, r *http.Request, resp *Datatablesdata)(error)
 	Create(w http.ResponseWriter, r *http.Request, resp *Datatablesdata)(error)
@@ -20,19 +37,5 @@ type DataTableHandler interface {
 	GET(w http.ResponseWriter, r *http.Request, resp *Datatablesdata)(error)
 }
 
-func GetDatatablesHandler(tableName string)(ret DataTableHandler, err error)  {
-	switch tableName {
-	case "userinfo":
-		ret = new(Userinfohandler)
-	case "course":
-		ret = new(Coursehandler)
-	case "pets":
-		ret = new(Petshandler)
-	default:
-		err = errors.New("tablename is not found")
-		log.Println("failed to match tablename in func GetDatatablesHandler, err: ", err.Error())
-	}
-	return
-}
 
 

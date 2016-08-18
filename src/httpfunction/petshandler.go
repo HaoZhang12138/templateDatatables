@@ -2,6 +2,8 @@ package httpfunction
 
 import "net/http"
 
+
+//一个自定义handler的例子， 可参考
 type Petshandler struct {
 
 }

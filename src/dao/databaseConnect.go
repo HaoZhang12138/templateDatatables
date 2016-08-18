@@ -11,6 +11,7 @@ const host = "127.0.0.1:27017"
 const dataBase = "myuser"
 const countertable = "counter"
 
+//数据库连接
 var mgoSession *mgo.Session
 func getSession() *mgo.Session {
 
@@ -25,6 +26,7 @@ func getSession() *mgo.Session {
 	return mgoSession.Clone()
 }
 
+//数据库执行
 func doCllection(col string, f func(*mgo.Collection) (interface{}, error) ) (interface{}, error) {
 	session := getSession()
 	defer session.Close()
@@ -32,6 +34,7 @@ func doCllection(col string, f func(*mgo.Collection) (interface{}, error) ) (int
 	return f(c)
 }
 
+//自增id
 func GetNextId() (id int) {
 	f := func(counter *mgo.Collection) (interface{}, error) {
 		cid :="counterid"

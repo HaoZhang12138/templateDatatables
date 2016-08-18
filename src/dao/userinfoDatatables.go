@@ -1,5 +1,6 @@
 package dao
 
+//上传文件的例子
 type UserinfoDatatables struct {
 	User string `json:"user"`
 	Pass string `json:"pass"`

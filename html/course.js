@@ -4,7 +4,7 @@ var table;
 $(document).ready(function() {
     var tableName = $("table").attr("id");
     editor = new $.fn.dataTable.Editor( {
-        ajax: "/view?tableName=" + tableName,
+        ajax: "/defaultview?tableName=" + tableName,
         table: "#"+ tableName,
         idSrc: "courseid",
         fields: [{
@@ -28,7 +28,7 @@ $(document).ready(function() {
         dom: "Bfrtip",
         pageLength: 8,
         ajax: {
-            url: "/view?tableName=" + tableName
+            url: "/defaultview?tableName=" + tableName
         },
         columns: [
             { data: "courseid"   },

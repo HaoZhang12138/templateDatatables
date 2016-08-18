@@ -5,6 +5,7 @@ import (
 	"errors"
 )
 
+//自定义结构体， 在此处添加关于结构体的case
 func GetDataStruct(tableName string) (ret DataTablesDao,err error) {
 	switch tableName {
 	case "userinfo":
@@ -20,6 +21,7 @@ func GetDataStruct(tableName string) (ret DataTablesDao,err error) {
 	return
 }
 
+//自定义结构体， 在此处添加关于结构体数组的case
 func GetDataStructSilce(tableName string) (ret interface{},err error) {
 	switch tableName {
 	case "userinfo":
@@ -35,6 +37,7 @@ func GetDataStructSilce(tableName string) (ret interface{},err error) {
 	return
 }
 
+//自定义结构体， 在此处添加关于结构体主键的case
 func GetTableIdInJson(tableName string)(idInJson string, err error) {
 	switch tableName {
 	case "userinfo":
