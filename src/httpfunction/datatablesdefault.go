@@ -72,6 +72,12 @@ func Remove_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata
 		log.Println("failed to remove line, err: ",err.Error())
 		return
 	}
+	resp.Data, err = dao.GetDataStructSilce(tableName)
+	if err != nil {
+		log.Println("falied to get datastruct silce, err: ", err.Error())
+		return
+	}
+
 	return
 }
 
@@ -97,6 +103,7 @@ func GET_default(w http.ResponseWriter, r *http.Request, resp *Datatablesdata) (
 		log.Println("failed to handle file in GET, err: ", err.Error())
 		return
 	}
+
 	return
 }
 
@@ -113,21 +120,21 @@ func Get_tableName_id(r *http.Request)(tableName string, id []string, err error)
 
 //用于创建和编辑之后，加载要回应的数据
 func Common_create_edit(tableName string, res []dao.DataTablesDao, resp *Datatablesdata)(err error) {
-	dataslice := make([]interface{}, 0)
-	for i := range res {
-		data, err := dao.GetDataStruct(tableName)
-		if err != nil {
-			log.Println("failed to get data struct, err: ", err.Error())
-			return err
-		}
-		err = dao.GetOneById(tableName, res[i].GetId(), data)
-		if err != nil {
-			log.Println("failed to get one data by id, err: ", err.Error())
-			return err
-		}
-		dataslice = append(dataslice, data)
+
+	resp.Data, err = dao.GetDataStructSilce(tableName)
+	if err != nil{
+		log.Println("failed to get data struct slice, err: ", err.Error())
+		return
 	}
-	resp.Data = dataslice
+	var ids []interface{}
+	for i := range res {
+		ids = append(ids, res[i].GetId())
+	}
+	err = dao.GetDataByIdSlice(tableName, ids, resp.Data)
+	if err != nil{
+		log.Println("failed to get data by id array, err: ", err.Error())
+		return
+	}
 	return
 }
 

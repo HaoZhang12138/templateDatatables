@@ -26,6 +26,10 @@ func Insert(tableName string, data interface{})(err error) {
 		return nil, c.Insert(data)
 	}
 	_, err = doCllection(tableName, f)
+	if err != nil {
+		log.Println("failed to insert data, err: ", err.Error())
+		return
+	}
 	return
 }
 
@@ -34,6 +38,10 @@ func Remove(tableName string, id interface{})(err error){
 		return nil, c.Remove(bson.M{"_id": id})
 	}
 	_, err = doCllection(tableName, f)
+	if err != nil {
+		log.Println("failed to remove data, err: ", err.Error())
+		return
+	}
 	return
 }
 
@@ -42,6 +50,10 @@ func Update(tableName string, id interface{}, data interface{})(err error) {
 		return nil, c.UpdateId(id, data)
 	}
 	_, err = doCllection(tableName, f)
+	if err != nil {
+		log.Println("failed to update data, err: ", err.Error())
+		return
+	}
 	return
 }
 
@@ -62,15 +74,14 @@ func GetFileId(tableName string, id interface{})(ret string, err error){
 
 }
 
-func GetOneById(tableName string, id interface{}, data interface{})(err error){
+func GetDataByIdSlice(tableName string, id []interface{}, data interface{})(err error){
 
 	f := func(c *mgo.Collection) (interface{}, error) {
-		return nil, c.Find(bson.M{"_id": id}).One(data)
+		return nil, c.Find(bson.M{"_id": bson.M{"$in": id}}).All(data)
 	}
 	_, err = doCllection(tableName, f)
-
 	if err != nil {
-		log.Println("failed to get one userinfo, err: ", err.Error())
+		log.Println("failed to get one, err: ", err.Error())
 		return nil
 	}
 	return
