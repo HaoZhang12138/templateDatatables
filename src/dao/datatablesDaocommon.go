@@ -81,7 +81,7 @@ func GetDataByIdSlice(tableName string, id []interface{}, data interface{})(err 
 	}
 	_, err = doCllection(tableName, f)
 	if err != nil {
-		log.Println("failed to get one, err: ", err.Error())
+		log.Println("failed to get Data by id array, err: ", err.Error())
 		return nil
 	}
 	return
