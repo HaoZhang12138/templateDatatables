@@ -1,0 +1,8 @@
+/bin
+/pkg
+*.iml
+/html/Editor-1.5.6
+/html/uploads
+/src/github.com
+/src/gopkg.in
+*.pdf
