@@ -26,6 +26,14 @@ datatables and editor to display table and how to handle it in the back-end
 1. 连接mongo数据库的信息在databaseConnect.go文件
 2. 上传文件的配置信息在datatablesDao_uploadfile.go文件
 
+#### 第三方库
+1. go-simplejson库
+   获取方式： `go get github.com/bitly/go-simplejson`
+2. mgo.v2库
+   获取方式： `go get gopkg.in/mgo.v2`
+3. Editor-1.5.6
+   获取方式： `https://editor.datatables.net/download/` 下载js+css版
+
 
 
 
