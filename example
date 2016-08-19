@@ -20,7 +20,7 @@
 	     return  this.Courseid
      }
 
-（2）修改datatables_getDataStruct.go文件
+（2）修改datatablesDaofactory.go文件
 	1）在GetDataStruct函数加入关于自定义表的case，通用结构为：
 	case "表名":
 		ret = new(表对应的struct)
@@ -148,7 +148,7 @@
 	
         
 // 一些配置信息
-（1）关于数据库连接的配置在newConn.go文件
-（2）关于上传文件的配置在uploadfile.go
+1. 连接mongo数据库的信息在databaseConnect.go文件
+2. 上传文件的配置信息在datatablesDao_uploadfile.go文件
 
 
